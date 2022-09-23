@@ -138,6 +138,7 @@ public class MovementManager : MonoBehaviour
                 return false;
             }, stateTo));
     }
+
     public void AddTransitionWithBool(State<MovementManager> state, bool check, System.Type stateTo) {
         state.AddTransition(new Transition<MovementManager>(
             (x) => {
@@ -146,6 +147,7 @@ public class MovementManager : MonoBehaviour
                 return false;
             }, stateTo));
     }
+
     public void AddTransitionWithPrediquete(State<MovementManager> state, System.Predicate<MovementManager> predicate, System.Type stateTo) {
         state.AddTransition(new Transition<MovementManager>(predicate, stateTo));
     }
