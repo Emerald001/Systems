@@ -28,4 +28,8 @@ public class MovementEvaluator
 
         return false;
     }
+
+    public bool FoundEdge() {
+        return false;
+    }
 }
