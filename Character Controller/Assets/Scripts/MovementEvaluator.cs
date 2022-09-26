@@ -29,7 +29,19 @@ public class MovementEvaluator
         return false;
     }
 
-    public bool FoundEdge() {
+    public bool CanGrabLedge() {
+        if (owner.velocity.y > 1 && owner.velocity.y < 5)
+            return false;
+
+        Ray RayOne = new(owner.controller.transform.position + new Vector3(0, 1.5f, 0), owner.transform.forward);
+        Ray RayTwo = new(owner.controller.transform.position + new Vector3(0, 1.7f, 0), owner.transform.forward);
+
+        if (Physics.Raycast(RayOne, out var hitOne, .6f, owner.EdgeLayer)) {
+            if (!Physics.Raycast(RayTwo, out var hitTwo, .6f, owner.EdgeLayer)) {
+                return true;
+            }
+        }
+
         return false;
     }
 }

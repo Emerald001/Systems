@@ -15,6 +15,7 @@ public class MovementManager : MonoBehaviour
     public Transform SlopeTransform;
     public Transform YRotationParent;
     public LayerMask GroundLayer;
+    public LayerMask EdgeLayer;
     [HideInInspector] public CharacterController controller;
     [HideInInspector] public MovementEvaluator evaluator;
 
@@ -56,6 +57,9 @@ public class MovementManager : MonoBehaviour
         var airbornState = new AirbornState(movementStateMachine);
         movementStateMachine.AddState(typeof(AirbornState), airbornState);
         AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.IsGrounded(); }, typeof(GroundedState));
+        AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.CanGrabLedge(); }, typeof(GroundedState));
+
+        
 
         var crouchingState = new CrouchingState(movementStateMachine);
         AddTransitionWithKey(crouchingState, KeyCode.Space, typeof(AirbornState));
@@ -115,6 +119,9 @@ public class MovementManager : MonoBehaviour
     }
 
     void Update() {
+        if(evaluator.CanGrabLedge())
+            Debug.Log(evaluator.CanGrabLedge());
+
         movementStateMachine.OnUpdate();
 
         SlopeTransform.rotation = Quaternion.FromToRotation(SlopeTransform.up, evaluator.GetSlopeNormal()) * SlopeTransform.rotation;
