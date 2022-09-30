@@ -36,13 +36,14 @@ public class SlidingState : MoveState {
 
         velocity = currentDir * owner.slideSpeed;
 
+        owner.velocity = velocity;
+
         //jump 
         if (Input.GetKeyDown(KeyCode.Space)) {
+            owner.animator.SetBool("Sliding", false);
             owner.animator.SetTrigger("Jump");
             owner.velocity += new Vector3(0, Mathf.Sqrt(owner.jumpHeight * -2 * owner.gravity), 0);
         }
-
-        owner.velocity = velocity;
 
         base.OnUpdate();
     }

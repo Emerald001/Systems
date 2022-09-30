@@ -1263,7 +1263,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 816161796}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 13.22, y: 4.27, z: -39.47}
+  m_LocalPosition: {x: 13.22, y: 4.27, z: -39.586}
   m_LocalScale: {x: 5.5082, y: 0.1432, z: 0.20406}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1767,7 +1767,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1029264237}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 8.07, y: 7.68, z: -39.47}
+  m_LocalPosition: {x: 8.07, y: 7.68, z: -39.58}
   m_LocalScale: {x: 5.5082, y: 0.1432, z: 0.20406}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2681,14 +2681,14 @@ MonoBehaviour:
     m_Bits: 64
   controller: {fileID: 0}
   gravity: -19.62
-  airDrag: 0.995
+  airDrag: 0.997
   Acceleration: 50
   maxSpeed: 30
-  speed: 10
-  airbornSpeed: 0.07
+  speed: 5
+  airbornSpeed: 0.03
   runSpeed: 15
   slideSpeed: 25
-  crouchSpeed: 5
+  crouchSpeed: 2
   jumpHeight: 4
   jumpAmount: 2
   CurrentDirection: {x: 0, y: 0, z: 0}
@@ -3002,7 +3002,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1913384442}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 11.8, y: 10.54, z: -39.47}
+  m_LocalPosition: {x: 11.8, y: 10.54, z: -39.56}
   m_LocalScale: {x: 5.5082, y: 0.1432, z: 0.20406}
   m_ConstrainProportionsScale: 0
   m_Children: []

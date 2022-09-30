@@ -61,7 +61,7 @@ public class MovementManager : MonoBehaviour
         var airbornState = new AirbornState(movementStateMachine);
         movementStateMachine.AddState(typeof(AirbornState), airbornState);
         AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.IsGrounded(); }, typeof(GroundedState));
-        AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.CanGrabLedge(); }, typeof(GroundedState));
+        AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.CanGrabLedge() != null && Input.GetKey(KeyCode.W); }, typeof(LedgeGrabbingState));
 
         var crouchingState = new CrouchingState(movementStateMachine);
         AddTransitionWithKey(crouchingState, KeyCode.Space, typeof(AirbornState));
@@ -114,13 +114,15 @@ public class MovementManager : MonoBehaviour
         AddTransitionWithKey(sprintingState, KeyCode.LeftControl, typeof(SlidingState));
         AddTransitionWithKey(sprintingState, KeyCode.LeftShift, typeof(GroundedState));
 
+        var wallLatchState = new LedgeGrabbingState(movementStateMachine);
+        movementStateMachine.AddState(typeof(LedgeGrabbingState), wallLatchState);
+        AddTransitionWithKey(wallLatchState, KeyCode.C, typeof(AirbornState));
+        AddTransitionWithKey(wallLatchState, KeyCode.Space, typeof(AirbornState));
+
         movementStateMachine.ChangeState(typeof(GroundedState));
     }
 
     void Update() {
-        if(evaluator.CanGrabLedge())
-            Debug.Log(evaluator.CanGrabLedge());
-
         movementStateMachine.OnUpdate();
 
         SlopeTransform.rotation = Quaternion.FromToRotation(SlopeTransform.up, evaluator.GetSlopeNormal()) * SlopeTransform.rotation;

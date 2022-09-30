@@ -29,19 +29,19 @@ public class MovementEvaluator
         return false;
     }
 
-    public bool CanGrabLedge() {
+    public GameObject CanGrabLedge() {
         if (owner.velocity.y > 1 && owner.velocity.y < 5)
-            return false;
+            return null;
 
-        Ray RayOne = new(owner.controller.transform.position + new Vector3(0, 1.5f, 0), owner.transform.forward);
-        Ray RayTwo = new(owner.controller.transform.position + new Vector3(0, 1.7f, 0), owner.transform.forward);
+        Ray rayOne = new(owner.controller.transform.position + new Vector3(0, 2.2f, 0), owner.transform.forward);
+        Ray rayTwo = new(owner.controller.transform.position + new Vector3(0, 2.4f, 0), owner.transform.forward);
 
-        if (Physics.Raycast(RayOne, out var hitOne, .6f, owner.EdgeLayer)) {
-            if (!Physics.Raycast(RayTwo, out var hitTwo, .6f, owner.EdgeLayer)) {
-                return true;
+        if (Physics.Raycast(rayOne, out var hitOne, .6f, owner.EdgeLayer)) {
+            if (!Physics.Raycast(rayTwo, out var hitTwo, .6f, owner.EdgeLayer)) {
+                return hitOne.collider.gameObject;
             }
         }
 
-        return false;
+        return null;
     }
 }
