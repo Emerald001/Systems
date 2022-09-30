@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
 
 public class MovementManager : MonoBehaviour
 {
@@ -10,6 +11,7 @@ public class MovementManager : MonoBehaviour
     private StateMachine<MovementManager> movementStateMachine;
 
     [Header("Objects Needed")]
+    public Animator animator;
     public GameObject Visuals;
     public GameObject GroundCheck;
     public Transform SlopeTransform;
@@ -18,6 +20,7 @@ public class MovementManager : MonoBehaviour
     public LayerMask EdgeLayer;
     [HideInInspector] public CharacterController controller;
     [HideInInspector] public MovementEvaluator evaluator;
+    [HideInInspector] public AnimationManager animations;
 
     [Header("World Settings")]
     public float gravity = -19.62f;
@@ -42,6 +45,7 @@ public class MovementManager : MonoBehaviour
         controller = GetComponent<CharacterController>();
 
         movementStateMachine = new(this);
+        animations = new(animator);
 
         evaluator = new();
         evaluator.owner = this;
@@ -59,8 +63,6 @@ public class MovementManager : MonoBehaviour
         AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.IsGrounded(); }, typeof(GroundedState));
         AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.CanGrabLedge(); }, typeof(GroundedState));
 
-        
-
         var crouchingState = new CrouchingState(movementStateMachine);
         AddTransitionWithKey(crouchingState, KeyCode.Space, typeof(AirbornState));
         AddTransitionWithPrediquete(crouchingState, (x) => { return !evaluator.IsGrounded(); }, typeof(AirbornState));
@@ -70,7 +72,6 @@ public class MovementManager : MonoBehaviour
                 if (!evaluator.TouchedRoof()) {
                     return true;
                 }
-                return false;
             }
             return false;
         }, typeof(GroundedState));
@@ -79,7 +80,6 @@ public class MovementManager : MonoBehaviour
                 if (!evaluator.TouchedRoof()) {
                     return true;
                 }
-                return false;
             }
             return false;
         }, typeof(SprintingState));
@@ -94,7 +94,6 @@ public class MovementManager : MonoBehaviour
                 if (evaluator.TouchedRoof()) {
                     return true;
                 }
-                return false;
             }
             return false;
         }, typeof(CrouchingState));
@@ -103,7 +102,6 @@ public class MovementManager : MonoBehaviour
                 if (!evaluator.TouchedRoof()) {
                     return true;
                 }
-                return false;
             }
             return false;
         }, typeof(SprintingState));
@@ -112,6 +110,7 @@ public class MovementManager : MonoBehaviour
         movementStateMachine.AddState(typeof(SprintingState), sprintingState);
         AddTransitionWithKey(sprintingState, KeyCode.Space, typeof(AirbornState));
         AddTransitionWithPrediquete(sprintingState, (x) => { return !evaluator.IsGrounded(); }, typeof(AirbornState));
+        AddTransitionWithPrediquete(sprintingState, (x) => { return Input.GetAxisRaw("Vertical") <= 0; }, typeof(GroundedState));
         AddTransitionWithKey(sprintingState, KeyCode.LeftControl, typeof(SlidingState));
         AddTransitionWithKey(sprintingState, KeyCode.LeftShift, typeof(GroundedState));
 

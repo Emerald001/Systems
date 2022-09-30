@@ -9,11 +9,11 @@ public class SprintingState : MoveState {
     }
 
     public override void OnEnter() {
-
+        owner.animator.SetBool("Sprinting", true);
     }
 
     public override void OnExit() {
-
+        owner.animator.SetBool("Sprinting", false);
     }
 
     public override void OnUpdate() {
@@ -25,8 +25,12 @@ public class SprintingState : MoveState {
         var movedir = owner.SlopeTransform.TransformDirection(input.normalized);
         velocity += movedir * owner.runSpeed;
 
-        //jump 
+        if (input.magnitude == 0)
+            owner.animator.SetBool("Walking", false);
+
+        //jump
         if (Input.GetKeyDown(KeyCode.Space)) {
+            owner.animator.SetTrigger("Jump");
             owner.velocity += new Vector3(0, Mathf.Sqrt(owner.jumpHeight * -2 * owner.gravity), 0);
         }
 

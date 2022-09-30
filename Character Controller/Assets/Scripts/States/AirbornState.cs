@@ -11,11 +11,13 @@ public class AirbornState : MoveState {
     }
 
     public override void OnEnter() {
+        owner.animator.SetBool("Falling", true);
         doubleJumps = owner.jumpAmount;
     }
 
     public override void OnExit() {
-
+        owner.animator.SetBool("Falling", false);
+        owner.animator.SetTrigger("TouchedGround");
     }
 
     public override void OnUpdate() {

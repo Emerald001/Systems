@@ -10,18 +10,20 @@ public class SlidingState : MoveState {
     }
 
     public override void OnEnter() {
+        owner.animator.SetBool("Sliding", true);
+
         owner.controller.height = 1;
         owner.controller.center = new Vector3(0, .5f, 0);
-        owner.Visuals.transform.localScale = new Vector3(1, .5f, 1);
 
         Vector3 input = new(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
         currentDir = owner.SlopeTransform.TransformDirection(input.normalized);
     }
 
     public override void OnExit() {
+        owner.animator.SetBool("Sliding", false);
+
         owner.controller.height = 2;
         owner.controller.center = new Vector3(0, 1, 0);
-        owner.Visuals.transform.localScale = new Vector3(1, 1, 1);
     }
 
     public override void OnUpdate() {
@@ -36,6 +38,7 @@ public class SlidingState : MoveState {
 
         //jump 
         if (Input.GetKeyDown(KeyCode.Space)) {
+            owner.animator.SetTrigger("Jump");
             owner.velocity += new Vector3(0, Mathf.Sqrt(owner.jumpHeight * -2 * owner.gravity), 0);
         }
 

@@ -139,7 +139,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &113345473
 Transform:
   m_ObjectHideFlags: 0
@@ -230,9 +230,9 @@ MonoBehaviour:
   - {fileID: 6781274947313348256, guid: 8f6f238917c9ae04db4645f8d8c16a9b, type: 3}
   - {fileID: 6528415818637384447, guid: f4dd51f6f18b53247b37d7db2c582c73, type: 3}
   - {fileID: 4846407632820011713, guid: dcc52829dd55e59469abe14eee5e1902, type: 3}
-  xAs: 30
-  yAs: 3
-  zAs: 30
+  xAs: 20
+  yAs: 1
+  zAs: 20
   floorDis: 5
   tileSize: 1
   generationSpeed: 0.003
@@ -257,7 +257,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &311031263
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -547,7 +547,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4416926081852918481, guid: 64dce48905ffd9b4293e595fa6941544, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4416926081852918490, guid: 64dce48905ffd9b4293e595fa6941544, type: 3}
       propertyPath: MoveSpeed
