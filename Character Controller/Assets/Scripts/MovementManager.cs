@@ -36,6 +36,8 @@ public class MovementManager : MonoBehaviour
     public float crouchSpeed;
     public float jumpHeight;
     public int jumpAmount;
+    public float climbDistance;
+    public float leapClimbDistance;
 
     //Keep Track of Info
     [HideInInspector] public Vector3 CurrentDirection; 
@@ -117,13 +119,20 @@ public class MovementManager : MonoBehaviour
         var wallLatchState = new LedgeGrabbingState(movementStateMachine);
         movementStateMachine.AddState(typeof(LedgeGrabbingState), wallLatchState);
         AddTransitionWithKey(wallLatchState, KeyCode.C, typeof(AirbornState));
-        AddTransitionWithKey(wallLatchState, KeyCode.Space, typeof(AirbornState));
+        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKeyDown(KeyCode.W) && evaluator.CanGrabLedge(Vector3.up); }, typeof(GrabNextLedgeState));
+        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKeyDown(KeyCode.S) && evaluator.CanGrabLedge(Vector3.down); }, typeof(GrabNextLedgeState));
+
+        var wallClimbState = new GrabNextLedgeState(movementStateMachine);
+        movementStateMachine.AddState(typeof(GrabNextLedgeState), wallClimbState);
+        AddTransitionWithPrediquete(wallClimbState, (x) => { return wallClimbState.isDone; }, typeof(LedgeGrabbingState));
 
         movementStateMachine.ChangeState(typeof(GroundedState));
     }
 
     void Update() {
         movementStateMachine.OnUpdate();
+
+        Debug.DrawRay(transform.position, transform.forward + transform.up);
 
         SlopeTransform.rotation = Quaternion.FromToRotation(SlopeTransform.up, evaluator.GetSlopeNormal()) * SlopeTransform.rotation;
         SlopeTransform.localEulerAngles = new Vector3(SlopeTransform.localEulerAngles.x, 0, SlopeTransform.localEulerAngles.z);

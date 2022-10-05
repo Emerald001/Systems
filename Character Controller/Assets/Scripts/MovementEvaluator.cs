@@ -44,4 +44,34 @@ public class MovementEvaluator
 
         return null;
     }
+
+    public GameObject CanGrabLedge(Vector3 Dir) {
+        Ray ray = new(owner.transform.position + (new Vector3(0, 2.2f, 0) + owner.transform.forward * .6f), Dir);
+
+        Debug.DrawRay(owner.transform.position + (new Vector3(0, 2.2f, 0) + owner.transform.forward * .6f), Dir);
+
+        if(Physics.Raycast(ray, out var hit, owner.climbDistance, owner.EdgeLayer)) {
+            return hit.collider.gameObject;
+        }
+        return null;
+    }
+
+    public GameObject CanGrabLedgeLeap(Vector3 Dir) {
+        Ray ray = new(owner.transform.position + (new Vector3(0, 2.2f, 0) + owner.transform.forward * .6f), Dir);
+
+        if (Physics.Raycast(ray, out var hit, owner.leapClimbDistance, owner.EdgeLayer)) {
+            return hit.collider.gameObject;
+        }
+        return null;
+    }
+
+    public bool CanGoOntoLedge() {
+        Ray ray = new(owner.controller.transform.position + new Vector3(0, 2.4f, 0), owner.transform.forward);
+
+        if (!Physics.Raycast(ray, out var hit, 3f)) {
+            return true;
+        }
+
+        return false;
+    }
 }

@@ -28,13 +28,10 @@ public class LedgeGrabbingState : MoveState {
 
         var tmp = Ledge.transform.localScale.x / 2 - skinWidth;
         MinMax = new Vector2(-tmp, tmp);
-
-        Debug.Log(owner.transform.position.x + MinMax.x);
-        Debug.Log(owner.transform.position.x + MinMax.y);
     }
 
     public override void OnExit() {
-        owner.animator.SetBool("HangingFromEdge", false);
+
     }
     
     public override void OnUpdate() {
@@ -63,10 +60,9 @@ public class LedgeGrabbingState : MoveState {
             owner.animator.SetBool("EdgeWalkLeft", false);
         }
 
-        if (Input.GetKeyDown(KeyCode.Space)) {
-            owner.animator.SetTrigger("Jump");
-            owner.velocity += new Vector3(0, Mathf.Sqrt(owner.jumpHeight * -2 * owner.gravity), 0);
-        }
+        Vector3 desiredForward = Vector3.RotateTowards(owner.transform.forward, -Ledge.transform.forward, 30 * Time.deltaTime, 0f);
+        desiredForward.y = 0;
+        owner.transform.LookAt(owner.transform.position + desiredForward);
 
         owner.velocity = velocity;
 
