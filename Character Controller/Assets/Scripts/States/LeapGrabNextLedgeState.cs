@@ -16,24 +16,6 @@ public class LeapGrabNextLedgeState : MoveState {
     public override void OnEnter() {
         Ledge = owner.evaluator.CanGrabLedge();
 
-        if (Input.GetKey(KeyCode.W)) {
-            var newLedge = owner.evaluator.CanGrabLedge(owner.transform.up);
-
-            if (newLedge) {
-                dir = new Vector3(0, newLedge.transform.position.y - owner.transform.position.y, 0).normalized;
-                this.newLedge = newLedge;
-            }
-        }
-
-        if (Input.GetKey(KeyCode.S)) {
-            var newLedge = owner.evaluator.CanGrabLedge(-owner.transform.up);
-
-            if (newLedge) {
-                dir = new Vector3(0, owner.transform.position.y - newLedge.transform.position.y, 0).normalized;
-                this.newLedge = newLedge;
-            }
-        }
-
         isDone = false;
     }
 
@@ -42,7 +24,7 @@ public class LeapGrabNextLedgeState : MoveState {
     }
 
     public override void OnUpdate() {
-        if (owner.evaluator.CanGrabLedge() != newLedge) {
+        if (Mathf.Abs((owner.transform.position.y + 1) - newLedge.transform.position.y) > .01f) {
             owner.velocity = dir * 5;
         }
         else {

@@ -65,13 +65,13 @@ public class MovementEvaluator
         return null;
     }
 
-    public bool CanGoOntoLedge() {
+    public Vector3 CanGoOntoLedge() {
         Ray ray = new(owner.controller.transform.position + new Vector3(0, 2.4f, 0), owner.transform.forward);
 
         if (!Physics.Raycast(ray, out var hit, 3f)) {
-            return true;
+            return owner.transform.position + owner.transform.forward * 1.2f + new Vector3(0, 2.4f, 0);
         }
 
-        return false;
+        return Vector3.zero;
     }
 }

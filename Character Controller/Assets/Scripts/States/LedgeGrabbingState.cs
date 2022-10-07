@@ -60,10 +60,6 @@ public class LedgeGrabbingState : MoveState {
             owner.animator.SetBool("EdgeWalkLeft", false);
         }
 
-        Vector3 desiredForward = Vector3.RotateTowards(owner.transform.forward, -Ledge.transform.forward, 30 * Time.deltaTime, 0f);
-        desiredForward.y = 0;
-        owner.transform.LookAt(owner.transform.position + desiredForward);
-
         owner.velocity = velocity;
 
         base.OnUpdate();

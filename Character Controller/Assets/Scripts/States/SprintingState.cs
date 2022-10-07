@@ -10,6 +10,8 @@ public class SprintingState : MoveState {
 
     public override void OnEnter() {
         owner.animator.SetBool("Sprinting", true);
+
+        owner.sprinting = true;
     }
 
     public override void OnExit() {

@@ -25,7 +25,7 @@ public class GrabNextLedgeState : MoveState
             }
         }
 
-        if (Input.GetKey(KeyCode.S)) {
+        else if (Input.GetKey(KeyCode.S)) {
             var newLedge = owner.evaluator.CanGrabLedge(-owner.transform.up);
 
             if (newLedge) {
@@ -42,7 +42,7 @@ public class GrabNextLedgeState : MoveState
     }
 
     public override void OnUpdate() {
-        if (owner.evaluator.CanGrabLedge() != newLedge) {
+        if (Mathf.Abs((owner.transform.position.y + 2.2f) - newLedge.transform.position.y) > .01f) {
             owner.velocity = dir * 5;
         }
         else {

@@ -41,7 +41,8 @@ public class MovementManager : MonoBehaviour
 
     //Keep Track of Info
     [HideInInspector] public Vector3 CurrentDirection; 
-    [HideInInspector] public Vector3 GroundAngle; 
+    [HideInInspector] public Vector3 GroundAngle;
+    [HideInInspector] public bool sprinting;
 
     void Start() {
         controller = GetComponent<CharacterController>();
@@ -62,7 +63,8 @@ public class MovementManager : MonoBehaviour
 
         var airbornState = new AirbornState(movementStateMachine);
         movementStateMachine.AddState(typeof(AirbornState), airbornState);
-        AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.IsGrounded(); }, typeof(GroundedState));
+        AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.IsGrounded() && !sprinting; }, typeof(GroundedState));
+        AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.IsGrounded() && sprinting; }, typeof(SprintingState));
         AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.CanGrabLedge() != null && Input.GetKey(KeyCode.W); }, typeof(LedgeGrabbingState));
 
         var crouchingState = new CrouchingState(movementStateMachine);
@@ -112,19 +114,24 @@ public class MovementManager : MonoBehaviour
         movementStateMachine.AddState(typeof(SprintingState), sprintingState);
         AddTransitionWithKey(sprintingState, KeyCode.Space, typeof(AirbornState));
         AddTransitionWithPrediquete(sprintingState, (x) => { return !evaluator.IsGrounded(); }, typeof(AirbornState));
-        AddTransitionWithPrediquete(sprintingState, (x) => { return Input.GetAxisRaw("Vertical") <= 0; }, typeof(GroundedState));
         AddTransitionWithKey(sprintingState, KeyCode.LeftControl, typeof(SlidingState));
-        AddTransitionWithKey(sprintingState, KeyCode.LeftShift, typeof(GroundedState));
+        AddTransitionWithPrediquete(sprintingState, (x) => { if (Input.GetAxisRaw("Vertical") <= 0) { sprinting = false; return true; } return false; }, typeof(GroundedState));
+        AddTransitionWithPrediquete(sprintingState, (x) => { if (Input.GetKeyDown(KeyCode.LeftShift)) { sprinting = false; return true; } return false; }, typeof(GroundedState));
 
         var wallLatchState = new LedgeGrabbingState(movementStateMachine);
         movementStateMachine.AddState(typeof(LedgeGrabbingState), wallLatchState);
         AddTransitionWithKey(wallLatchState, KeyCode.C, typeof(AirbornState));
-        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKeyDown(KeyCode.W) && evaluator.CanGrabLedge(Vector3.up); }, typeof(GrabNextLedgeState));
-        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKeyDown(KeyCode.S) && evaluator.CanGrabLedge(Vector3.down); }, typeof(GrabNextLedgeState));
+        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && evaluator.CanGrabLedge(Vector3.up); }, typeof(GrabNextLedgeState));
+        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.S) && evaluator.CanGrabLedge(Vector3.down); }, typeof(GrabNextLedgeState));
+        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && evaluator.CanGoOntoLedge() != Vector3.zero; }, typeof(GetUpOnPlatformState));
 
         var wallClimbState = new GrabNextLedgeState(movementStateMachine);
         movementStateMachine.AddState(typeof(GrabNextLedgeState), wallClimbState);
         AddTransitionWithPrediquete(wallClimbState, (x) => { return wallClimbState.isDone; }, typeof(LedgeGrabbingState));
+
+        var goOntoPlatformState = new GetUpOnPlatformState(movementStateMachine);
+        movementStateMachine.AddState(typeof(GetUpOnPlatformState), goOntoPlatformState);
+        AddTransitionWithPrediquete(goOntoPlatformState, (x) => { return goOntoPlatformState.IsDone; }, typeof(GroundedState));
 
         movementStateMachine.ChangeState(typeof(GroundedState));
     }
