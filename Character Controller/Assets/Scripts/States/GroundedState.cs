@@ -9,7 +9,7 @@ public class GroundedState : MoveState {
     }
 
     public override void OnEnter() {
-
+        owner.lookAtMoveDir = true;
     }
 
     public override void OnExit() {

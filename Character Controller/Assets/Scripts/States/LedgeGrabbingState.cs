@@ -14,17 +14,13 @@ public class LedgeGrabbingState : MoveState {
     private float skinWidth = .5f;
 
     public override void OnEnter() {
+        owner.lookAtMoveDir = false;
+
         owner.velocity = Vector3.zero;
 
+        Ledge = owner.CurrentLedge;
+
         owner.animator.SetBool("HangingFromEdge", true);
-
-        Ledge = owner.evaluator.CanGrabLedge();
-
-        Ray rayOne = new(owner.controller.transform.position + new Vector3(0, 2.2f, 0), owner.transform.forward);
-        if(Physics.Raycast(rayOne, out var hit, 1f, owner.EdgeLayer)) {
-            AlongEdge = hit.normal;
-            AlongEdge = Vector3.Cross(AlongEdge, Vector3.up);
-        }
 
         var tmp = Ledge.transform.localScale.x / 2 - skinWidth;
         MinMax = new Vector2(-tmp, tmp);

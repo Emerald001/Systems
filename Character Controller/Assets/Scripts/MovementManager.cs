@@ -18,6 +18,8 @@ public class MovementManager : MonoBehaviour
     public Transform YRotationParent;
     public LayerMask GroundLayer;
     public LayerMask EdgeLayer;
+    public GameObject DebugObject;
+
     [HideInInspector] public CharacterController controller;
     [HideInInspector] public MovementEvaluator evaluator;
     [HideInInspector] public AnimationManager animations;
@@ -43,6 +45,8 @@ public class MovementManager : MonoBehaviour
     [HideInInspector] public Vector3 CurrentDirection; 
     [HideInInspector] public Vector3 GroundAngle;
     [HideInInspector] public bool sprinting;
+    [HideInInspector] public bool lookAtMoveDir = true;
+    [HideInInspector] public GameObject CurrentLedge = null;
 
     void Start() {
         controller = GetComponent<CharacterController>();
@@ -131,7 +135,7 @@ public class MovementManager : MonoBehaviour
 
         var goOntoPlatformState = new GetUpOnPlatformState(movementStateMachine);
         movementStateMachine.AddState(typeof(GetUpOnPlatformState), goOntoPlatformState);
-        AddTransitionWithPrediquete(goOntoPlatformState, (x) => { return goOntoPlatformState.IsDone; }, typeof(GroundedState));
+        AddTransitionWithPrediquete(goOntoPlatformState, (x) => { return goOntoPlatformState.IsDone; }, typeof(AirbornState));
 
         movementStateMachine.ChangeState(typeof(GroundedState));
     }
@@ -139,14 +143,12 @@ public class MovementManager : MonoBehaviour
     void Update() {
         movementStateMachine.OnUpdate();
 
-        Debug.DrawRay(transform.position, transform.forward + transform.up);
-
         SlopeTransform.rotation = Quaternion.FromToRotation(SlopeTransform.up, evaluator.GetSlopeNormal()) * SlopeTransform.rotation;
         SlopeTransform.localEulerAngles = new Vector3(SlopeTransform.localEulerAngles.x, 0, SlopeTransform.localEulerAngles.z);
 
         controller.Move(velocity * Time.deltaTime);
 
-        if(velocity.magnitude > 1) {
+        if(velocity.magnitude > 1 && lookAtMoveDir) {
             Vector3 desiredForward = Vector3.RotateTowards(transform.forward, velocity.normalized, 30 * Time.deltaTime, 0f);
             desiredForward.y = 0;
             transform.LookAt(transform.position + desiredForward);

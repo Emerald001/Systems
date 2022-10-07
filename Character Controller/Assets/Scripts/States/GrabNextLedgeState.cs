@@ -8,32 +8,9 @@ public class GrabNextLedgeState : MoveState
 
     }
 
-    public GameObject Ledge;
-    public GameObject newLedge;
     public bool isDone = false;
-    public Vector3 dir = new();
 
     public override void OnEnter() {
-        Ledge = owner.evaluator.CanGrabLedge();
-
-        if (Input.GetKey(KeyCode.W)) {
-            var newLedge = owner.evaluator.CanGrabLedge(owner.transform.up);
-
-            if (newLedge) {
-                dir = new Vector3(0, newLedge.transform.position.y - owner.transform.position.y, 0).normalized;
-                this.newLedge = newLedge;
-            }
-        }
-
-        else if (Input.GetKey(KeyCode.S)) {
-            var newLedge = owner.evaluator.CanGrabLedge(-owner.transform.up);
-
-            if (newLedge) {
-                dir = new Vector3(0, owner.transform.position.y - newLedge.transform.position.y, 0).normalized;
-                this.newLedge = newLedge;
-            }
-        }
-
         isDone = false;
     }
 
@@ -42,8 +19,9 @@ public class GrabNextLedgeState : MoveState
     }
 
     public override void OnUpdate() {
-        if (Mathf.Abs((owner.transform.position.y + 2.2f) - newLedge.transform.position.y) > .01f) {
-            owner.velocity = dir * 5;
+        if (Mathf.Abs(owner.transform.position.y + 1.5f - owner.CurrentLedge.transform.position.y) > .02f) {
+            var dif = new Vector3(owner.CurrentLedge.transform.position.x - owner.transform.position.x, 1.5f, 0);
+            owner.velocity = (owner.CurrentLedge.transform.position - (owner.transform.position + dif)).normalized * 5;
         }
         else {
             isDone = true;

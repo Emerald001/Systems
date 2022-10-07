@@ -11,6 +11,8 @@ public class AirbornState : MoveState {
     }
 
     public override void OnEnter() {
+        owner.lookAtMoveDir = true;
+
         owner.animator.SetBool("HangingFromEdge", false);
         owner.animator.SetBool("Falling", true);
         doubleJumps = owner.jumpAmount;
