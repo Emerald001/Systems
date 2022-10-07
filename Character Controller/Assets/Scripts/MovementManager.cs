@@ -126,16 +126,33 @@ public class MovementManager : MonoBehaviour
         movementStateMachine.AddState(typeof(LedgeGrabbingState), wallLatchState);
         AddTransitionWithKey(wallLatchState, KeyCode.C, typeof(AirbornState));
         AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && evaluator.CanGrabLedge(Vector3.up); }, typeof(GrabNextLedgeState));
+        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && Input.GetKeyDown(KeyCode.Space) && evaluator.CanGrabLedgeLeap(Vector3.up); }, typeof(LeapGrabNextLedgeState));
         AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.S) && evaluator.CanGrabLedge(Vector3.down); }, typeof(GrabNextLedgeState));
+        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.S) && Input.GetKeyDown(KeyCode.Space) && evaluator.CanGrabLedgeLeap(Vector3.down); }, typeof(LeapGrabNextLedgeState));
         AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && evaluator.CanGoOntoLedge() != Vector3.zero; }, typeof(GetUpOnPlatformState));
+        AddTransitionWithPrediquete(wallLatchState, (x) => { 
+            if (transform.position.x < CurrentLedge.transform.position.x - CurrentLedge.transform.localScale.x / 2 - .5f || transform.position.x > CurrentLedge.transform.position.x + CurrentLedge.transform.localScale.x / 2 - .5f) {
+                if (evaluator.LookAroundCorner())
+                    return true;
+                }
+            return false;
+        }, typeof(GetUpOnPlatformState));
 
         var wallClimbState = new GrabNextLedgeState(movementStateMachine);
         movementStateMachine.AddState(typeof(GrabNextLedgeState), wallClimbState);
         AddTransitionWithPrediquete(wallClimbState, (x) => { return wallClimbState.isDone; }, typeof(LedgeGrabbingState));
 
+        var leapWallState = new LeapGrabNextLedgeState(movementStateMachine);
+        movementStateMachine.AddState(typeof(LeapGrabNextLedgeState), leapWallState);
+        AddTransitionWithPrediquete(leapWallState, (x) => { return leapWallState.isDone; }, typeof(LedgeGrabbingState));
+
         var goOntoPlatformState = new GetUpOnPlatformState(movementStateMachine);
         movementStateMachine.AddState(typeof(GetUpOnPlatformState), goOntoPlatformState);
         AddTransitionWithPrediquete(goOntoPlatformState, (x) => { return goOntoPlatformState.IsDone; }, typeof(AirbornState));
+
+        var goAroundCornerState = new GoAroundCornerState(movementStateMachine);
+        movementStateMachine.AddState(typeof(GoAroundCornerState), goAroundCornerState);
+        AddTransitionWithPrediquete(goAroundCornerState, (x) => { return goAroundCornerState.IsDone; }, typeof(LedgeGrabbingState));
 
         movementStateMachine.ChangeState(typeof(GroundedState));
     }

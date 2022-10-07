@@ -47,9 +47,16 @@ public class MovementEvaluator
     }
 
     public GameObject CanGrabLedge(Vector3 Dir) {
-        Ray ray = new(owner.transform.position + (new Vector3(0, 1.5f, 0) + owner.transform.forward * .6f), Dir);
+        Vector3 pos = Vector3.zero;
 
-        Debug.DrawRay(owner.transform.position + (new Vector3(0, 1.5f, 0) + owner.transform.forward * .6f), Dir);
+        if(Dir == Vector3.up)
+            pos = new Vector3(owner.transform.position.x, owner.CurrentLedge.transform.position.y + .05f, owner.transform.position.z) + owner.transform.forward * .6f;
+        else if(Dir == Vector3.down)
+            pos = new Vector3(owner.transform.position.x, owner.CurrentLedge.transform.position.y - .05f, owner.transform.position.z) + owner.transform.forward * .6f;
+
+        Ray ray = new(pos, Dir);
+
+        Debug.DrawRay(pos, Dir);
 
         if(Physics.Raycast(ray, out var hit, owner.climbDistance, owner.EdgeLayer)) {
             if (hit.collider.gameObject == owner.CurrentLedge) {
@@ -64,9 +71,23 @@ public class MovementEvaluator
     }
 
     public GameObject CanGrabLedgeLeap(Vector3 Dir) {
-        Ray ray = new(owner.transform.position + (new Vector3(0, 1.7f, 0) + owner.transform.forward * .6f), Dir);
+        Vector3 pos = Vector3.zero;
+
+        if (Dir == Vector3.up)
+            pos = new Vector3(owner.transform.position.x, owner.CurrentLedge.transform.position.y + .05f + owner.climbDistance, owner.transform.position.z) + owner.transform.forward * .6f;
+        else if (Dir == Vector3.down)
+            pos = new Vector3(owner.transform.position.x, owner.CurrentLedge.transform.position.y - .05f - owner.climbDistance, owner.transform.position.z) + owner.transform.forward * .6f;
+
+        Ray ray = new(pos, Dir);
+
+        Debug.DrawRay(pos, Dir);
 
         if (Physics.Raycast(ray, out var hit, owner.leapClimbDistance, owner.EdgeLayer)) {
+            if (hit.collider.gameObject == owner.CurrentLedge) {
+                Debug.LogError("Same Edge");
+                return null;
+            }
+
             owner.CurrentLedge = hit.collider.gameObject;
             return hit.collider.gameObject;
         }
@@ -74,13 +95,29 @@ public class MovementEvaluator
     }
 
     public Vector3 CanGoOntoLedge() {
-        Ray ray = new(owner.controller.transform.position + new Vector3(0, 1.8f, 0), owner.transform.forward);
+        Vector3 pos = new Vector3(owner.transform.position.x, owner.CurrentLedge.transform.position.y + .1f, owner.transform.position.z);
+        Ray ray = new(pos, owner.transform.forward);
 
         if (!Physics.Raycast(ray, out var hit, 3f)) {
-            owner.CurrentLedge = null;
             return owner.transform.position + owner.transform.forward * 1.2f + new Vector3(0, 2.4f, 0);
         }
 
         return Vector3.zero;
+    }
+
+    public bool LookAroundCorner() {
+        var col = Physics.OverlapSphere(owner.transform.position, .2f, owner.EdgeLayer);
+
+        foreach (var item in col) {
+            if(item.gameObject != owner.CurrentLedge) {
+                owner.CurrentLedge = item.gameObject;
+
+                Debug.Log("Got a New Corner: " + item.gameObject.name);
+
+                return true;
+            }
+        }
+
+        return false;
     }
 }

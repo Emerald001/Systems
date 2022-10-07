@@ -14,6 +14,8 @@ public class GetUpOnPlatformState : MoveState {
     public override void OnEnter() {
         endpoint = owner.evaluator.CanGoOntoLedge();
 
+        owner.CurrentLedge = null;
+
         owner.animator.SetTrigger("GetOntoPlatform");
         IsDone = false;
     }
