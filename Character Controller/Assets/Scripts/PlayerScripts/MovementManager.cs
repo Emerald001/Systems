@@ -98,38 +98,36 @@ public class MovementManager : MonoBehaviour
         AddTransitionWithPrediquete(slidingState, (x) => { return !evaluator.IsGrounded(); }, typeof(AirbornState));
         AddTransitionWithPrediquete(slidingState, (x) => { return velocity.magnitude < 5f; }, typeof(CrouchingState));
         AddTransitionWithPrediquete(slidingState, (x) => {
-            if (Input.GetKeyUp(KeyCode.LeftControl)) {
+            if (Input.GetKeyUp(KeyCode.LeftControl)) 
                 if (evaluator.TouchedRoof()) {
                     return true;
                 }
-            }
             return false;
         }, typeof(CrouchingState));
         AddTransitionWithPrediquete(slidingState, (x) => {
-            if (Input.GetKeyUp(KeyCode.LeftControl)) {
+            if (Input.GetKeyUp(KeyCode.LeftControl)) 
                 if (!evaluator.TouchedRoof()) {
                     return true;
                 }
-            }
             return false;
         }, typeof(SprintingState));
 
         var sprintingState = new SprintingState(movementStateMachine);
         movementStateMachine.AddState(typeof(SprintingState), sprintingState);
         AddTransitionWithKey(sprintingState, KeyCode.Space, typeof(AirbornState));
-        AddTransitionWithPrediquete(sprintingState, (x) => { return !evaluator.IsGrounded(); }, typeof(AirbornState));
         AddTransitionWithKey(sprintingState, KeyCode.LeftControl, typeof(SlidingState));
+        AddTransitionWithPrediquete(sprintingState, (x) => { return !evaluator.IsGrounded(); }, typeof(AirbornState));
         AddTransitionWithPrediquete(sprintingState, (x) => { if (Input.GetAxisRaw("Vertical") <= 0) { sprinting = false; return true; } return false; }, typeof(GroundedState));
         AddTransitionWithPrediquete(sprintingState, (x) => { if (Input.GetKeyDown(KeyCode.LeftShift)) { sprinting = false; return true; } return false; }, typeof(GroundedState));
 
         var wallLatchState = new LedgeGrabbingState(movementStateMachine);
         movementStateMachine.AddState(typeof(LedgeGrabbingState), wallLatchState);
         AddTransitionWithKey(wallLatchState, KeyCode.C, typeof(AirbornState));
+        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && evaluator.CanGoOntoLedge() != Vector3.zero; }, typeof(GetUpOnPlatformState));
         AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && evaluator.CanGrabLedge(Vector3.up); }, typeof(GrabNextLedgeState));
         AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && Input.GetKeyDown(KeyCode.Space) && evaluator.CanGrabLedgeLeap(Vector3.up); }, typeof(LeapGrabNextLedgeState));
         AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.S) && evaluator.CanGrabLedge(Vector3.down); }, typeof(GrabNextLedgeState));
         AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.S) && Input.GetKeyDown(KeyCode.Space) && evaluator.CanGrabLedgeLeap(Vector3.down); }, typeof(LeapGrabNextLedgeState));
-        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && evaluator.CanGoOntoLedge() != Vector3.zero; }, typeof(GetUpOnPlatformState));
         AddTransitionWithPrediquete(wallLatchState, (x) => { 
             if (transform.position.x < CurrentLedge.transform.position.x - CurrentLedge.transform.localScale.x / 2 - .5f || transform.position.x > CurrentLedge.transform.position.x + CurrentLedge.transform.localScale.x / 2 - .5f) {
                 if (evaluator.LookAroundCorner())

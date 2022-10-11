@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class GroundedState : MoveState {
-
     public GroundedState(StateMachine<MovementManager> owner) : base(owner) {
         this.owner = stateMachine.Owner;
     }
