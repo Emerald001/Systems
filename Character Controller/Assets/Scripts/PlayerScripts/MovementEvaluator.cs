@@ -70,6 +70,12 @@ public class MovementEvaluator
         return null;
     }
 
+    public Vector3 GetNewFreerunningPoint() {
+        
+        
+        return Vector3.zero;
+    }
+
     public GameObject CanGrabLedgeLeap(Vector3 Dir) {
         Vector3 pos = Vector3.zero;
 
