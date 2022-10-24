@@ -8,6 +8,9 @@ public class CameraLookaround : MonoBehaviour
     public Transform XRotTransform;
     public float mouseSensitivity = 100f;
     public float followSpeed;
+    public float MaxAngleLook = 65f;
+    public float MinAngleLook = 65f;
+
     private float xRotation = 0f;
     private float yRotation = 0f;
 
@@ -24,7 +27,7 @@ public class CameraLookaround : MonoBehaviour
 
         xRotation -= mouseY;
         yRotation += mouseX;
-        xRotation = Mathf.Clamp(xRotation, 0, 65f);
+        xRotation = Mathf.Clamp(xRotation, MinAngleLook, MaxAngleLook);
 
         XRotTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         transform.localRotation = Quaternion.Euler(0f, yRotation, 0f);

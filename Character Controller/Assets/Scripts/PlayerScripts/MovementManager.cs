@@ -40,6 +40,7 @@ public class MovementManager : MonoBehaviour
     public int jumpAmount;
     public float climbDistance;
     public float leapClimbDistance;
+    public float freerunViewAngle;
 
     //Keep Track of Info
     [HideInInspector] public Vector3 CurrentDirection; 
@@ -156,6 +157,9 @@ public class MovementManager : MonoBehaviour
     }
 
     void Update() {
+        var input = new Vector2(Input.GetKey(KeyCode.L).GetHashCode() - Input.GetKey(KeyCode.J).GetHashCode(), Input.GetKey(KeyCode.I).GetHashCode() - Input.GetKey(KeyCode.K).GetHashCode());
+        evaluator.GetNewFreerunningPoint(transform.TransformDirection(new Vector3(input.x, input.y, 0)), 4);
+
         movementStateMachine.OnUpdate();
 
         SlopeTransform.rotation = Quaternion.FromToRotation(SlopeTransform.up, evaluator.GetSlopeNormal()) * SlopeTransform.rotation;
