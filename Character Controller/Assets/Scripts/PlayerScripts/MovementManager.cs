@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 public class MovementManager : MonoBehaviour
 {
+    [Header("Open Vars")]
     public Vector3 velocity;
 
     //StateMachine
@@ -18,11 +19,13 @@ public class MovementManager : MonoBehaviour
     public Transform YRotationParent;
     public LayerMask GroundLayer;
     public LayerMask EdgeLayer;
+    public GameObject coneDetector;
     public GameObject DebugObject;
 
     [HideInInspector] public CharacterController controller;
     [HideInInspector] public MovementEvaluator evaluator;
     [HideInInspector] public AnimationManager animations;
+    [HideInInspector] public CollisionDetector coneCollisions;
 
     [Header("World Settings")]
     public float gravity = -19.62f;
@@ -51,6 +54,7 @@ public class MovementManager : MonoBehaviour
 
     void Start() {
         controller = GetComponent<CharacterController>();
+        coneCollisions = coneDetector.GetComponentInChildren<CollisionDetector>();
 
         movementStateMachine = new(this);
         animations = new(animator);
