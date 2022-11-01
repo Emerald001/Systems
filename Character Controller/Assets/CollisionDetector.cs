@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CollisionDetector : MonoBehaviour
 {
-    [HideInInspector] public HashSet<GameObject> CollisionsThisFrame = new();
+    [HideInInspector] public List<GameObject> CollisionsThisFrame = new();
 
     private void FixedUpdate() {
         CollisionsThisFrame.Clear();
