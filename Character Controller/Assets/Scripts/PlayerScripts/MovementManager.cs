@@ -139,11 +139,21 @@ public class MovementManager : MonoBehaviour
         movementStateMachine.AddState(typeof(LedgeGrabbingState), wallLatchState);
         AddTransitionWithKey(wallLatchState, KeyCode.C, typeof(AirbornState));
         AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && evaluator.CanGoOntoLedge() != Vector3.zero; }, typeof(GetUpOnPlatformState));
-        AddTransitionWithPrediquete(wallLatchState, (x) => { 
-            return (CurrentLedge = evaluator.SphereCast(new Vector3(Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Horizontal"), 0), 1, spherecheckRadius)) != null; 
+        AddTransitionWithPrediquete(wallLatchState, (x) => {
+            var tmp = evaluator.SphereCast(new Vector3(Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Horizontal"), 0), 1, spherecheckRadius);
+            if (tmp != null) {
+                CurrentLedge = tmp;
+                return true;
+            }
+            return false;
         }, typeof(GrabNextLedgeState));
-        AddTransitionWithPrediquete(wallLatchState, (x) => { 
-            return (CurrentLedge = evaluator.SphereCast(new Vector3(Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Horizontal"), 0), 3, spherecheckRadius * 3)) != null && Input.GetKey(KeyCode.Space); 
+        AddTransitionWithPrediquete(wallLatchState, (x) => {
+            var tmp = evaluator.SphereCast(new Vector3(Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Horizontal"), 0), 3, spherecheckRadius * 3);
+            if (tmp != null) {
+                CurrentLedge = tmp;
+                return true;
+            }
+            return false;
         }, typeof(GrabNextLedgeState));
         //AddTransitionWithPrediquete(wallLatchState, (x) => { 
         //    if (transform.position.x < CurrentLedge.transform.position.x - CurrentLedge.transform.localScale.x / 2 - .5f || transform.position.x > CurrentLedge.transform.position.x + CurrentLedge.transform.localScale.x / 2 - .5f) {
@@ -181,7 +191,7 @@ public class MovementManager : MonoBehaviour
         Vector3 input = new(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), 0);
 
         if (input.magnitude > 0) {
-            var pos = LedgeCheck.transform.position + (input.normalized * .7f) * dis;
+            var pos = LedgeCheck.transform.position + LedgeCheck.transform.TransformDirection(input.normalized * .7f) * dis;
 
             DebugObject.SetActive(true);
             DebugObject.transform.position = pos;
@@ -190,6 +200,8 @@ public class MovementManager : MonoBehaviour
         else {
             DebugObject.SetActive(false);
         }
+
+        Debug.Log(CurrentLedge);
 
         movementStateMachine.OnUpdate();
 

@@ -31,7 +31,7 @@ public class MovementEvaluator
     }
 
     public GameObject SphereCast(Vector3 input, float dis, float rad) {
-        var pos = owner.LedgeCheck.transform.position + (input.normalized * .7f) * dis;
+        var pos = owner.LedgeCheck.transform.position + owner.LedgeCheck.transform.TransformDirection(input.normalized * .7f) * dis;
 
         List<Collider> tmp = new(Physics.OverlapSphere(pos, rad));
         
