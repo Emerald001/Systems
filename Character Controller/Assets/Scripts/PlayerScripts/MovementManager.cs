@@ -49,12 +49,16 @@ public class MovementManager : MonoBehaviour
     [HideInInspector] public Vector3 CurrentDirection; 
     [HideInInspector] public Vector3 GroundAngle;
     [HideInInspector] public bool sprinting;
+    [HideInInspector] public bool canGrabNextLedge = true;
     [HideInInspector] public bool lookAtMoveDir = true;
     [HideInInspector] public GameObject CurrentLedge = null;
+    [HideInInspector] public Vector3 CurrentLedgePoint = Vector3.zero;
 
     void Start() {
         controller = GetComponent<CharacterController>();
         coneCollisions = coneDetector.GetComponentInChildren<CollisionDetector>();
+        
+        canGrabNextLedge = true;
 
         movementStateMachine = new(this);
         animations = new(animator);
@@ -74,7 +78,7 @@ public class MovementManager : MonoBehaviour
         movementStateMachine.AddState(typeof(AirbornState), airbornState);
         AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.IsGrounded() && !sprinting; }, typeof(GroundedState));
         AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.IsGrounded() && sprinting; }, typeof(SprintingState));
-        AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.CanGrabLedge() != null && Input.GetKey(KeyCode.W); }, typeof(LedgeGrabbingState));
+        AddTransitionWithPrediquete(airbornState, (x) => { return CurrentLedge != null; }, typeof(LedgeGrabbingState));
 
         var crouchingState = new CrouchingState(movementStateMachine);
         AddTransitionWithKey(crouchingState, KeyCode.Space, typeof(AirbornState));
@@ -129,10 +133,7 @@ public class MovementManager : MonoBehaviour
         movementStateMachine.AddState(typeof(LedgeGrabbingState), wallLatchState);
         AddTransitionWithKey(wallLatchState, KeyCode.C, typeof(AirbornState));
         AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && evaluator.CanGoOntoLedge() != Vector3.zero; }, typeof(GetUpOnPlatformState));
-        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && evaluator.CanGrabLedge(Vector3.up); }, typeof(GrabNextLedgeState));
-        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && Input.GetKeyDown(KeyCode.Space) && evaluator.CanGrabLedgeLeap(Vector3.up); }, typeof(LeapGrabNextLedgeState));
-        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.S) && evaluator.CanGrabLedge(Vector3.down); }, typeof(GrabNextLedgeState));
-        AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.S) && Input.GetKeyDown(KeyCode.Space) && evaluator.CanGrabLedgeLeap(Vector3.down); }, typeof(LeapGrabNextLedgeState));
+        AddTransitionWithPrediquete(wallLatchState, (x) => { return CurrentLedgePoint != Vector3.zero; }, typeof(GrabNextLedgeState));
         AddTransitionWithPrediquete(wallLatchState, (x) => { 
             if (transform.position.x < CurrentLedge.transform.position.x - CurrentLedge.transform.localScale.x / 2 - .5f || transform.position.x > CurrentLedge.transform.position.x + CurrentLedge.transform.localScale.x / 2 - .5f) {
                 if (evaluator.LookAroundCorner())
@@ -144,10 +145,6 @@ public class MovementManager : MonoBehaviour
         var wallClimbState = new GrabNextLedgeState(movementStateMachine);
         movementStateMachine.AddState(typeof(GrabNextLedgeState), wallClimbState);
         AddTransitionWithPrediquete(wallClimbState, (x) => { return wallClimbState.isDone; }, typeof(LedgeGrabbingState));
-
-        var leapWallState = new LeapGrabNextLedgeState(movementStateMachine);
-        movementStateMachine.AddState(typeof(LeapGrabNextLedgeState), leapWallState);
-        AddTransitionWithPrediquete(leapWallState, (x) => { return leapWallState.isDone; }, typeof(LedgeGrabbingState));
 
         var goOntoPlatformState = new GetUpOnPlatformState(movementStateMachine);
         movementStateMachine.AddState(typeof(GetUpOnPlatformState), goOntoPlatformState);
@@ -161,8 +158,17 @@ public class MovementManager : MonoBehaviour
     }
 
     void Update() {
-        var input = new Vector2(Input.GetKey(KeyCode.L).GetHashCode() - Input.GetKey(KeyCode.J).GetHashCode(), Input.GetKey(KeyCode.I).GetHashCode() - Input.GetKey(KeyCode.K).GetHashCode());
-        evaluator.GetNewFreerunningPoint(transform.TransformDirection(new Vector3(input.x, input.y, 0)), 4);
+        //if (canGrabNextLedge) {
+        //    var input = new Vector2(Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Horizontal"));
+
+        //    if (input == Vector2.zero) {
+        //        coneDetector.SetActive(false);
+        //    }
+        //    else {
+        //        coneDetector.SetActive(true);
+        //        StartCoroutine(evaluator.GetLedges(new Vector3(0, input.x, input.y), 4, 2));
+        //    }
+        //}
 
         movementStateMachine.OnUpdate();
 
@@ -199,5 +205,12 @@ public class MovementManager : MonoBehaviour
 
     public void AddTransitionWithPrediquete(State<MovementManager> state, System.Predicate<MovementManager> predicate, System.Type stateTo) {
         state.AddTransition(new Transition<MovementManager>(predicate, stateTo));
+    }
+
+    public void ResetTimer() => StartCoroutine(Timer());
+
+    public IEnumerator Timer() {
+        yield return new WaitForSeconds(2);
+        canGrabNextLedge = true;
     }
 }

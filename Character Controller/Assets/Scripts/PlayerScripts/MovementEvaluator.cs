@@ -5,6 +5,7 @@ using UnityEngine;
 public class MovementEvaluator
 {
     public MovementManager owner;
+    public List<GameObject> currentCollisions;
 
     public Vector3 GetSlopeNormal() {
         Vector3 origin = owner.controller.transform.position + new Vector3(0, .1f, 0);
@@ -70,14 +71,49 @@ public class MovementEvaluator
         return null;
     }
 
-    public List<GameObject> FindObjects(Vector3 dir, float diameter, float dis) {
+    public IEnumerator GetLedges(Vector3 dir, float diameter, float dis) {
+        var triggerObject = owner.coneDetector;
 
+        Vector3 newAngle = new Vector3(0, owner.transform.eulerAngles.y, 0);
+
+        if (dir.z == -1)
+            newAngle.z = 90;
+        if (dir.z == 1)
+            newAngle.z = -90;
+        if (dir.y == 1)
+            newAngle.z = 0;
+        if (dir.y == -1)
+            newAngle.z = 180;
+        if (dir.y == 1 && dir.z == -1)
+            newAngle.z = 45;
+        if (dir.y == -1 && dir.z == -1)
+            newAngle.z = 135;
+        if (dir.y == -1 && dir.z == 1)
+            newAngle.z = -135;
+        if (dir.y == 1 && dir.z == 1)
+            newAngle.z = -45;
+
+        triggerObject.transform.eulerAngles = newAngle;
+        triggerObject.transform.localScale = new Vector3(diameter, dis, diameter);
+
+        yield return new WaitForEndOfFrame();
+
+        currentCollisions = owner.coneCollisions.CollisionsThisFrame;
+
+        var result = GetNewFreeRunningObject(currentCollisions);
+        owner.CurrentLedge = result.Key;
+        owner.CurrentLedgePoint = result.Value;
+        Debug.Log(result.Value);
     }
 
-    public KeyValuePair<GameObject, Vector3> GetNewFreeRunningObject(List<GameObject> objectsFound, float dis) {
+    public KeyValuePair<GameObject, Vector3> GetNewFreeRunningObject(List<GameObject> objectsFound) {
+        if (objectsFound.Count < 1)
+            return new KeyValuePair<GameObject, Vector3>(null, Vector3.zero);
+
         for (int i = objectsFound.Count - 1; i >= 0; i--) {
-            if (objectsFound[i].layer != owner.EdgeLayer) {
+            if (objectsFound[i].layer != 6) {
                 objectsFound.RemoveAt(i);
+
                 continue;
             }
             
@@ -95,7 +131,21 @@ public class MovementEvaluator
             }
         }
 
-        return new KeyValuePair<GameObject, Vector3>(closestPoint, Vector3.zero);
+        Vector3 thatPoint = new();
+
+        if(closestPoint.transform.position.x + (closestPoint.transform.localScale.x / 2 - .5f) < owner.transform.position.x) {
+            thatPoint = closestPoint.transform.position + new Vector3(closestPoint.transform.localScale.x / 2 - .5f, 0, 0) + closestPoint.transform.forward * .63f;
+        }
+        else if (closestPoint.transform.position.x - (closestPoint.transform.localScale.x / 2 - .5f) > owner.transform.position.x) {
+            thatPoint = closestPoint.transform.position - new Vector3(closestPoint.transform.localScale.x / 2 + .5f, 0, 0) + closestPoint.transform.forward * .63f;
+        }
+        else {
+            thatPoint = new Vector3(owner.transform.position.x, closestPoint.transform.position.y, closestPoint.transform.position.z) + closestPoint.transform.forward * .63f;
+        }
+
+        Debug.Log(closestPoint);
+
+        return new KeyValuePair<GameObject, Vector3>(closestPoint, thatPoint);
     }
 
     //public Vector3 GetNewFreerunningPoint(Vector3 dir, float dis) {
