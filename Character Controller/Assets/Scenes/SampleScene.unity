@@ -6611,6 +6611,7 @@ MonoBehaviour:
   CurrentDirection: {x: 0, y: 0, z: 0}
   GroundAngle: {x: 0, y: 0, z: 0}
   sprinting: 0
+  canGrabNextLedge: 1
   lookAtMoveDir: 1
   CurrentLedge: {fileID: 0}
   CurrentLedgePoint: {x: 0, y: 0, z: 0}
