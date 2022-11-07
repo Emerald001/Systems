@@ -10,14 +10,12 @@ public class GrabNextLedgeState : MoveState
 
     public bool isDone = false;
     public GameObject Ledge;
-    public Vector3 TargetPos;
 
     public override void OnEnter() {
         isDone = false;
 
         Ledge = owner.CurrentLedge;
 
-        TargetPos = owner.CurrentLedgePoint;
         owner.canGrabNextLedge = false;
         //owner.animator.SetTrigger("HangJumpUp");
     }
@@ -27,14 +25,11 @@ public class GrabNextLedgeState : MoveState
     }
 
     public override void OnUpdate() {
-        var forwards = owner.transform.forward * .63f;
-
-        var offset = TargetPos - (owner.transform.position + new Vector3(0, 1.5f, 0));
+        var offset = owner.CurrentLedge.transform.position - owner.LedgeCheck.transform.position;
         if (offset.magnitude > .1f) {
             owner.velocity = offset.normalized * 5;
         }
         else {
-            owner.CurrentLedgePoint = Vector3.zero;
             owner.ResetTimer();
             isDone = true;
         }

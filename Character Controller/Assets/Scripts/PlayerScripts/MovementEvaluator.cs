@@ -30,178 +30,35 @@ public class MovementEvaluator
         return false;
     }
 
-    public GameObject CanGrabLedge() {
-        if (owner.velocity.y > 1 && owner.velocity.y < 5)
+    public GameObject SphereCast(Vector3 input, float dis, float rad) {
+        var pos = owner.LedgeCheck.transform.position + (input.normalized * .7f) * dis;
+
+        List<Collider> tmp = new(Physics.OverlapSphere(pos, rad));
+        
+        if (tmp.Count < 1)
             return null;
 
-        Ray rayOne = new(owner.controller.transform.position + new Vector3(0, 1.6f, 0), owner.transform.forward);
-        Ray rayTwo = new(owner.controller.transform.position + new Vector3(0, 1.65f, 0), owner.transform.forward);
-
-        if (Physics.Raycast(rayOne, out var hitOne, .6f, owner.EdgeLayer)) {
-            if (!Physics.Raycast(rayTwo, out var hitTwo, .6f, owner.EdgeLayer)) {
-                owner.CurrentLedge = hitOne.collider.gameObject;
-                return hitOne.collider.gameObject;
-            }
-        }
-
-        return null;
-    }
-
-    public GameObject CanGrabLedge(Vector3 Dir) {
-        Vector3 pos = Vector3.zero;
-
-        if(Dir == Vector3.up)
-            pos = new Vector3(owner.transform.position.x, owner.CurrentLedge.transform.position.y + .05f, owner.transform.position.z) + owner.transform.forward * .6f;
-        else if(Dir == Vector3.down)
-            pos = new Vector3(owner.transform.position.x, owner.CurrentLedge.transform.position.y - .05f, owner.transform.position.z) + owner.transform.forward * .6f;
-
-        Ray ray = new(pos, Dir);
-
-        Debug.DrawRay(pos, Dir);
-
-        if(Physics.Raycast(ray, out var hit, owner.climbDistance, owner.EdgeLayer)) {
-            if (hit.collider.gameObject == owner.CurrentLedge) {
-                Debug.LogError("Same Edge");
-                return null;
-            }
-
-            owner.CurrentLedge = hit.collider.gameObject;
-            return hit.collider.gameObject;
-        }
-        return null;
-    }
-
-    public IEnumerator GetLedges(Vector3 dir, float diameter, float dis) {
-        var triggerObject = owner.coneDetector;
-
-        Vector3 newAngle = new Vector3(0, owner.transform.eulerAngles.y, 0);
-
-        if (dir.z == -1)
-            newAngle.z = 90;
-        if (dir.z == 1)
-            newAngle.z = -90;
-        if (dir.y == 1)
-            newAngle.z = 0;
-        if (dir.y == -1)
-            newAngle.z = 180;
-        if (dir.y == 1 && dir.z == -1)
-            newAngle.z = 45;
-        if (dir.y == -1 && dir.z == -1)
-            newAngle.z = 135;
-        if (dir.y == -1 && dir.z == 1)
-            newAngle.z = -135;
-        if (dir.y == 1 && dir.z == 1)
-            newAngle.z = -45;
-
-        triggerObject.transform.eulerAngles = newAngle;
-        triggerObject.transform.localScale = new Vector3(diameter, dis, diameter);
-
-        yield return new WaitForEndOfFrame();
-
-        currentCollisions = owner.coneCollisions.CollisionsThisFrame;
-
-        var result = GetNewFreeRunningObject(currentCollisions);
-        owner.CurrentLedge = result.Key;
-        owner.CurrentLedgePoint = result.Value;
-        Debug.Log(result.Value);
-    }
-
-    public KeyValuePair<GameObject, Vector3> GetNewFreeRunningObject(List<GameObject> objectsFound) {
-        if (objectsFound.Count < 1)
-            return new KeyValuePair<GameObject, Vector3>(null, Vector3.zero);
-
-        for (int i = objectsFound.Count - 1; i >= 0; i--) {
-            if (objectsFound[i].layer != 6) {
-                objectsFound.RemoveAt(i);
-
+        for (int i = tmp.Count - 1; i >= 0; i--) {
+            if(tmp[i].gameObject.layer != 6) {
+                tmp.RemoveAt(i);
                 continue;
             }
-            
-            if (objectsFound[i] == owner.CurrentLedge)
-                objectsFound.RemoveAt(i);
         }
 
-        if (objectsFound.Count < 1)
-            return new KeyValuePair<GameObject, Vector3>(null, Vector3.zero);
+        if (tmp.Count < 1)
+            return null;
 
-        var closestPoint = objectsFound[0];
-        for (int i = 0; i < objectsFound.Count; i++) {
-            if (Vector3.Distance(objectsFound[i].transform.position, owner.transform.position) < Vector3.Distance(closestPoint.transform.position, owner.transform.position)) {
-                closestPoint = objectsFound[i];
+        var closestPoint = tmp[0];
+        foreach (var item in tmp) {
+            if (item == closestPoint)
+                continue;
+
+            if (Vector3.Distance(pos, closestPoint.transform.position) > Vector3.Distance(pos, item.transform.position)) {
+                closestPoint = item;
             }
         }
 
-        Vector3 thatPoint = new();
-
-        if(closestPoint.transform.position.x + (closestPoint.transform.localScale.x / 2 - .5f) < owner.transform.position.x) {
-            thatPoint = closestPoint.transform.position + new Vector3(closestPoint.transform.localScale.x / 2 - .5f, 0, 0) + closestPoint.transform.forward * .63f;
-        }
-        else if (closestPoint.transform.position.x - (closestPoint.transform.localScale.x / 2 - .5f) > owner.transform.position.x) {
-            thatPoint = closestPoint.transform.position - new Vector3(closestPoint.transform.localScale.x / 2 + .5f, 0, 0) + closestPoint.transform.forward * .63f;
-        }
-        else {
-            thatPoint = new Vector3(owner.transform.position.x, closestPoint.transform.position.y, closestPoint.transform.position.z) + closestPoint.transform.forward * .63f;
-        }
-
-        Debug.Log(closestPoint);
-
-        return new KeyValuePair<GameObject, Vector3>(closestPoint, thatPoint);
-    }
-
-    //public Vector3 GetNewFreerunningPoint(Vector3 dir, float dis) {
-    //    var edges = Physics.OverlapSphere(owner.transform.position + dir * dis, 4f, owner.EdgeLayer);
-    //    List<Collider> edgeList = new(edges);
-
-    //    for (int i = edgeList.Count - 1; i > 0; i--) {
-    //        if(owner.CurrentLedge == edgeList[i].gameObject) {
-    //            edgeList.Remove(edgeList[i]);
-    //        }
-
-    //        Vector3 tmpdir = (edgeList[i].transform.position - owner.transform.position).normalized;
-    //        float dotProduct = Vector3.Dot(tmpdir, owner.transform.forward);
-
-    //        if (-dotProduct < Mathf.Cos(owner.freerunViewAngle)) {
-    //            if (!Physics.Raycast(owner.transform.position + new Vector3(0, 1, 0), tmpdir, out var hit, dis, owner.EdgeLayer)) {
-    //                edgeList.Remove(edgeList[i]);
-    //            }
-    //        }
-    //    }
-
-    //    if (edgeList.Count < 1)
-    //        return Vector3.zero;
-
-    //    var closestPoint = edgeList[0].transform.position;
-    //    for (int i = 0; i < edgeList.Count; i++) {
-    //        if(Vector3.Distance(edgeList[i].transform.position, owner.transform.position) < Vector3.Distance(closestPoint, owner.transform.position)) {
-    //            closestPoint = edgeList[i].transform.position;
-    //        }
-    //    }
-
-    //    return closestPoint;
-    //}
-
-    public GameObject CanGrabLedgeLeap(Vector3 Dir) {
-        Vector3 pos = Vector3.zero;
-
-        if (Dir == Vector3.up)
-            pos = new Vector3(owner.transform.position.x, owner.CurrentLedge.transform.position.y + .05f + owner.climbDistance, owner.transform.position.z) + owner.transform.forward * .6f;
-        else if (Dir == Vector3.down)
-            pos = new Vector3(owner.transform.position.x, owner.CurrentLedge.transform.position.y - .05f - owner.climbDistance, owner.transform.position.z) + owner.transform.forward * .6f;
-
-        Ray ray = new(pos, Dir);
-
-        Debug.DrawRay(pos, Dir);
-
-        if (Physics.Raycast(ray, out var hit, owner.leapClimbDistance, owner.EdgeLayer)) {
-            if (hit.collider.gameObject == owner.CurrentLedge) {
-                Debug.LogError("Same Edge");
-                return null;
-            }
-
-            owner.CurrentLedge = hit.collider.gameObject;
-            return hit.collider.gameObject;
-        }
-        return null;
+        return closestPoint.gameObject;
     }
 
     public Vector3 CanGoOntoLedge() {
@@ -213,21 +70,5 @@ public class MovementEvaluator
         }
 
         return Vector3.zero;
-    }
-
-    public bool LookAroundCorner() {
-        var col = Physics.OverlapSphere(owner.transform.position, .2f, owner.EdgeLayer);
-
-        foreach (var item in col) {
-            if(item.gameObject != owner.CurrentLedge) {
-                owner.CurrentLedge = item.gameObject;
-
-                Debug.Log("Got a New Corner: " + item.gameObject.name);
-
-                return true;
-            }
-        }
-
-        return false;
     }
 }
