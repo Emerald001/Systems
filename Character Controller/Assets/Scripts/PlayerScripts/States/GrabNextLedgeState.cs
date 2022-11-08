@@ -37,6 +37,9 @@ public class GrabNextLedgeState : MoveState
         var offset = owner.CurrentLedge.transform.position - owner.LedgeCheck.transform.position;
         if (offset.magnitude > .01f) {
             owner.velocity = offset.normalized * 3;
+
+            if (offset.magnitude < .2f)
+                owner.animations.HandToLedge(owner.CurrentLedge);
         }
         else {
             isDone = true;

@@ -27,6 +27,8 @@ public class CameraLookaround : MonoBehaviour
     void Update() {
         transform.position = Vector3.Lerp(transform.position, ObjectToFollow.transform.position, followSpeed * Time.deltaTime);
 
+        CheckBackwards();
+
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
 
@@ -39,5 +41,15 @@ public class CameraLookaround : MonoBehaviour
 
         if(turnPlayer)
             player.transform.localRotation = Quaternion.Euler(0f, yRotation, 0f);
+    }
+
+    private void CheckBackwards() {
+        if(Physics.Raycast(XRotTransform.position, -XRotTransform.forward, out var hit, 4f)) {
+            if(Vector3.Distance(XRotTransform.position, hit.point) < 4)
+                Camera.main.transform.localPosition = new Vector3(Camera.main.transform.localPosition.x, Camera.main.transform.localPosition.y, -Vector3.Distance(XRotTransform.position, hit.point) + .5f);
+        }
+        else {
+            Camera.main.transform.localPosition = new Vector3(Camera.main.transform.localPosition.x, Camera.main.transform.localPosition.y, -4);
+        }
     }
 }

@@ -12,20 +12,23 @@ public class AnimationManager
     public Transform LeftFootTarget;
     public Transform RightFootTarget;
 
-    public AnimationManager(Animator animator) {
+    public float speed = 10;
+    private GameObject CurrentLedge;
+
+    public AnimationManager(MovementManager owner, Animator animator) {
+        this.owner = owner;
         this.animator = animator;
     }
 
-    public void SetTrigger(string trigger) {
-        animator.SetTrigger(trigger);
-    }
+    public void OnUpdate() {
+        if (!CurrentLedge)
+            return;
 
-    public void SetBool(string trigger, bool set) {
-        animator.SetBool(trigger, set);
+        LeftHandTarget.position = Vector3.MoveTowards(LeftHandTarget.position, CurrentLedge.transform.position, speed * Time.deltaTime);
+        RightHandTarget.position = Vector3.MoveTowards(RightHandTarget.position, CurrentLedge.transform.position, speed * Time.deltaTime);
     }
 
     public void HandToLedge(GameObject Ledge) {
-
-
+        CurrentLedge = Ledge;
     }
 }

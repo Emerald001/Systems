@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Threading.Tasks;
 
 public class MovementManager : MonoBehaviour
 {
@@ -12,7 +11,6 @@ public class MovementManager : MonoBehaviour
     private StateMachine<MovementManager> movementStateMachine;
 
     [Header("Objects Needed")]
-    public Animator animator;
     public GameObject Visuals;
     public GameObject GroundCheck;
     public GameObject LedgeCheck;
@@ -20,12 +18,10 @@ public class MovementManager : MonoBehaviour
     public Transform YRotationParent;
     public LayerMask GroundLayer;
     public LayerMask EdgeLayer;
-    public GameObject coneDetector;
     public GameObject DebugObject;
 
     [HideInInspector] public CharacterController controller;
     [HideInInspector] public MovementEvaluator evaluator;
-    [HideInInspector] public AnimationManager animations;
     [HideInInspector] public CollisionDetector coneCollisions;
 
     [Header("World Settings")]
@@ -45,6 +41,17 @@ public class MovementManager : MonoBehaviour
     public float spherecheckRadius;
     public float climbTime;
 
+    [Header("Animation Settings")]
+    public Animator animator;
+    public float armSpeed;
+
+    public Transform LeftHandTarget;
+    public Transform RightHandTarget;
+    public Transform LeftFootTarget;
+    public Transform RightFootTarget;
+
+    [HideInInspector] public AnimationManager animations;
+
     //Keep Track of Info
     [HideInInspector] public Vector3 CurrentDirection; 
     [HideInInspector] public Vector3 GroundAngle;
@@ -53,16 +60,20 @@ public class MovementManager : MonoBehaviour
     [HideInInspector] public bool lookAtMoveDir = true;
     [HideInInspector] public GameObject CurrentLedge = null;
 
-    float dis;
-    float rad;
-
     void Start() {
         controller = GetComponent<CharacterController>();
         
         canGrabNextLedge = true;
 
         movementStateMachine = new(this);
-        animations = new(animator);
+        animations = new(this, animator);
+
+        animations.speed = armSpeed;
+
+        animations.LeftFootTarget = LeftFootTarget;
+        animations.RightFootTarget = RightFootTarget;
+        animations.LeftHandTarget = LeftHandTarget;
+        animations.RightHandTarget = RightHandTarget;
 
         evaluator = new();
         evaluator.owner = this;
@@ -79,8 +90,13 @@ public class MovementManager : MonoBehaviour
         movementStateMachine.AddState(typeof(AirbornState), airbornState);
         AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.IsGrounded() && !sprinting; }, typeof(GroundedState));
         AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.IsGrounded() && sprinting; }, typeof(SprintingState));
-        AddTransitionWithPrediquete(airbornState, (x) => { 
-            return (CurrentLedge = evaluator.SphereCast(new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), 0), 0, spherecheckRadius)) != null; 
+        AddTransitionWithPrediquete(airbornState, (x) => {
+            var tmp = evaluator.SphereCast(new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), 0), 0, spherecheckRadius);
+            if (tmp != null && canGrabNextLedge) {
+                CurrentLedge = tmp;
+                return true;
+            }
+            return false;
         }, typeof(GrabNextLedgeState));
 
         var crouchingState = new CrouchingState(movementStateMachine);
@@ -158,6 +174,7 @@ public class MovementManager : MonoBehaviour
 
     void Update() {
         movementStateMachine.OnUpdate();
+        animations.OnUpdate();
 
         SlopeTransform.rotation = Quaternion.FromToRotation(SlopeTransform.up, evaluator.GetSlopeNormal()) * SlopeTransform.rotation;
         SlopeTransform.localEulerAngles = new Vector3(SlopeTransform.localEulerAngles.x, 0, SlopeTransform.localEulerAngles.z);
