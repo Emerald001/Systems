@@ -6,20 +6,12 @@ public class Checker : MonoBehaviour
 {
     public Transform debugSphere;
 
-    public Material normalMat;
-    public Material detectedMat;
-
     public float radius;
     public float waitTime;
     float dis;
     float rad;
 
-    Collider[] oldColliders;
     bool canInvoke = true;
-
-    void Start() {
-        
-    }
 
     void Update() {
         Vector3 input = new(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), 0);

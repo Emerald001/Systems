@@ -43,9 +43,7 @@ public class MovementManager : MonoBehaviour
     public float jumpHeight;
     public int jumpAmount;
     public float spherecheckRadius;
-    public float climbDistance;
-    public float leapClimbDistance;
-    public float freerunViewAngle;
+    public float climbTime;
 
     //Keep Track of Info
     [HideInInspector] public Vector3 CurrentDirection; 
@@ -54,7 +52,6 @@ public class MovementManager : MonoBehaviour
     [HideInInspector] public bool canGrabNextLedge = true;
     [HideInInspector] public bool lookAtMoveDir = true;
     [HideInInspector] public GameObject CurrentLedge = null;
-    [HideInInspector] public Vector3 CurrentLedgePoint = Vector3.zero;
 
     float dis;
     float rad;
@@ -83,8 +80,8 @@ public class MovementManager : MonoBehaviour
         AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.IsGrounded() && !sprinting; }, typeof(GroundedState));
         AddTransitionWithPrediquete(airbornState, (x) => { return evaluator.IsGrounded() && sprinting; }, typeof(SprintingState));
         AddTransitionWithPrediquete(airbornState, (x) => { 
-            return (CurrentLedge = evaluator.SphereCast(new Vector3(Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Horizontal"), 0), 0, spherecheckRadius)) != null; 
-        }, typeof(LedgeGrabbingState));
+            return (CurrentLedge = evaluator.SphereCast(new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), 0), 0, spherecheckRadius)) != null; 
+        }, typeof(GrabNextLedgeState));
 
         var crouchingState = new CrouchingState(movementStateMachine);
         AddTransitionWithKey(crouchingState, KeyCode.Space, typeof(AirbornState));
@@ -140,28 +137,13 @@ public class MovementManager : MonoBehaviour
         AddTransitionWithKey(wallLatchState, KeyCode.C, typeof(AirbornState));
         AddTransitionWithPrediquete(wallLatchState, (x) => { return Input.GetKey(KeyCode.W) && evaluator.CanGoOntoLedge() != Vector3.zero; }, typeof(GetUpOnPlatformState));
         AddTransitionWithPrediquete(wallLatchState, (x) => {
-            var tmp = evaluator.SphereCast(new Vector3(Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Horizontal"), 0), 1, spherecheckRadius);
-            if (tmp != null) {
+            var tmp = evaluator.SphereCast(new Vector3(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), 0), 1, spherecheckRadius);
+            if (tmp != null && canGrabNextLedge) {
                 CurrentLedge = tmp;
                 return true;
             }
             return false;
         }, typeof(GrabNextLedgeState));
-        AddTransitionWithPrediquete(wallLatchState, (x) => {
-            var tmp = evaluator.SphereCast(new Vector3(Input.GetAxisRaw("Vertical"), Input.GetAxisRaw("Horizontal"), 0), 3, spherecheckRadius * 3);
-            if (tmp != null) {
-                CurrentLedge = tmp;
-                return true;
-            }
-            return false;
-        }, typeof(GrabNextLedgeState));
-        //AddTransitionWithPrediquete(wallLatchState, (x) => { 
-        //    if (transform.position.x < CurrentLedge.transform.position.x - CurrentLedge.transform.localScale.x / 2 - .5f || transform.position.x > CurrentLedge.transform.position.x + CurrentLedge.transform.localScale.x / 2 - .5f) {
-        //        if (evaluator.LookAroundCorner())
-        //            return true;
-        //        }
-        //    return false;
-        //}, typeof(GetUpOnPlatformState));
 
         var wallClimbState = new GrabNextLedgeState(movementStateMachine);
         movementStateMachine.AddState(typeof(GrabNextLedgeState), wallClimbState);
@@ -171,38 +153,10 @@ public class MovementManager : MonoBehaviour
         movementStateMachine.AddState(typeof(GetUpOnPlatformState), goOntoPlatformState);
         AddTransitionWithPrediquete(goOntoPlatformState, (x) => { return goOntoPlatformState.IsDone; }, typeof(AirbornState));
 
-        //var goAroundCornerState = new GoAroundCornerState(movementStateMachine);
-        //movementStateMachine.AddState(typeof(GoAroundCornerState), goAroundCornerState);
-        //AddTransitionWithPrediquete(goAroundCornerState, (x) => { return goAroundCornerState.IsDone; }, typeof(LedgeGrabbingState));
-
         movementStateMachine.ChangeState(typeof(GroundedState));
     }
 
     void Update() {
-        if (Input.GetKey(KeyCode.Space)) {
-            dis = 3;
-            rad = spherecheckRadius * 3;
-        }
-        else {
-            dis = 1;
-            rad = spherecheckRadius;
-        }
-
-        Vector3 input = new(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"), 0);
-
-        if (input.magnitude > 0) {
-            var pos = LedgeCheck.transform.position + LedgeCheck.transform.TransformDirection(input.normalized * .7f) * dis;
-
-            DebugObject.SetActive(true);
-            DebugObject.transform.position = pos;
-            DebugObject.transform.localScale = new Vector3(rad * 2, rad * 2, rad * 2);
-        }
-        else {
-            DebugObject.SetActive(false);
-        }
-
-        Debug.Log(CurrentLedge);
-
         movementStateMachine.OnUpdate();
 
         SlopeTransform.rotation = Quaternion.FromToRotation(SlopeTransform.up, evaluator.GetSlopeNormal()) * SlopeTransform.rotation;
@@ -240,10 +194,10 @@ public class MovementManager : MonoBehaviour
         state.AddTransition(new Transition<MovementManager>(predicate, stateTo));
     }
 
-    public void ResetTimer() => StartCoroutine(Timer());
+    public void ResetTimer(float time) => StartCoroutine(Timer(time));
 
-    public IEnumerator Timer() {
-        yield return new WaitForSeconds(2);
+    public IEnumerator Timer(float time) {
+        yield return new WaitForSeconds(time);
         canGrabNextLedge = true;
     }
 }

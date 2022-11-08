@@ -31,6 +31,14 @@ public class MovementEvaluator
     }
 
     public GameObject SphereCast(Vector3 input, float dis, float rad) {
+        if (input.magnitude < .1f)
+            return null;
+
+        if (Input.GetKey(KeyCode.Space)) {
+            dis = 3;
+            rad = rad * 3;
+        }
+
         var pos = owner.LedgeCheck.transform.position + owner.LedgeCheck.transform.TransformDirection(input.normalized * .7f) * dis;
 
         List<Collider> tmp = new(Physics.OverlapSphere(pos, rad));
@@ -43,7 +51,7 @@ public class MovementEvaluator
                 tmp.RemoveAt(i);
                 continue;
             }
-        }
+        } 
 
         if (tmp.Count < 1)
             return null;

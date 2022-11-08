@@ -6,10 +6,15 @@ public class CameraLookaround : MonoBehaviour
 {
     public Transform ObjectToFollow;
     public Transform XRotTransform;
+
+    public Transform player;
+
     public float mouseSensitivity = 100f;
     public float followSpeed;
     public float MaxAngleLook = 65f;
     public float MinAngleLook = 65f;
+    
+    public bool turnPlayer;
 
     private float xRotation = 0f;
     private float yRotation = 0f;
@@ -31,6 +36,8 @@ public class CameraLookaround : MonoBehaviour
 
         XRotTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         transform.localRotation = Quaternion.Euler(0f, yRotation, 0f);
-        //transform.Rotate(Vector3.up * mouseX);
+
+        if(turnPlayer)
+            player.transform.localRotation = Quaternion.Euler(0f, yRotation, 0f);
     }
 }
