@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MovementEvaluator
+public class MovementEvaluator 
 {
     public MovementManager owner;
     public List<GameObject> currentCollisions;
@@ -28,6 +28,24 @@ public class MovementEvaluator
         }
 
         return false;
+    }
+
+    public GameObject CollectableNearby() {
+        var tmp = new List<Collider>(Physics.OverlapSphere(owner.LedgeCheck.transform.position, .5f));
+
+        for (int i = tmp.Count - 1; i > 0; i--) {
+            if (tmp[i].GetComponent<IInteractable>() != null)
+                continue;
+                
+            tmp.RemoveAt(i);
+        }
+
+        if (tmp.Count < 1)
+            return null;
+
+        Debug.Log(tmp[0].name);
+
+        return tmp[0].gameObject;
     }
 
     public GameObject SphereCast(Vector3 input, float dis, float rad) {

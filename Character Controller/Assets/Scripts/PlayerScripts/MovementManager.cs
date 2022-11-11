@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Animations.Rigging;
 
 public class MovementManager : MonoBehaviour
 {
@@ -45,10 +46,15 @@ public class MovementManager : MonoBehaviour
     public Animator animator;
     public float armSpeed;
 
-    public Transform LeftHandTarget;
-    public Transform RightHandTarget;
+    public Transform LeftArmTarget;
+    public TwoBoneIKConstraint leftArm;
+    public Transform RightArmTarget;
+    public TwoBoneIKConstraint rightArm;
+
     public Transform LeftFootTarget;
+    public TwoBoneIKConstraint leftLeg;
     public Transform RightFootTarget;
+    public TwoBoneIKConstraint rightLeg;
 
     [HideInInspector] public AnimationManager animations;
 
@@ -62,7 +68,7 @@ public class MovementManager : MonoBehaviour
 
     void Start() {
         controller = GetComponent<CharacterController>();
-        
+
         canGrabNextLedge = true;
 
         movementStateMachine = new(this);
@@ -72,8 +78,13 @@ public class MovementManager : MonoBehaviour
 
         animations.LeftFootTarget = LeftFootTarget;
         animations.RightFootTarget = RightFootTarget;
-        animations.LeftHandTarget = LeftHandTarget;
-        animations.RightHandTarget = RightHandTarget;
+        animations.LeftArmTarget = LeftArmTarget;
+        animations.RightArmTarget = RightArmTarget;
+
+        animations.leftArm = leftArm;
+        animations.rightArm = rightArm;
+        animations.leftLeg = leftLeg;
+        animations.rightLeg = rightLeg;
 
         evaluator = new();
         evaluator.owner = this;
@@ -85,6 +96,17 @@ public class MovementManager : MonoBehaviour
         AddTransitionWithBool(groundedState, !evaluator.IsGrounded(), typeof(AirbornState));
         AddTransitionWithKey(groundedState, KeyCode.LeftControl, typeof(CrouchingState));
         AddTransitionWithKey(groundedState, KeyCode.LeftShift, typeof(SprintingState));
+        AddTransitionWithPrediquete(groundedState, (x) => {
+            var tmp = evaluator.CollectableNearby();
+            if (tmp != null) {
+                animations.HandToObject(tmp, false);
+                if (Input.GetKeyDown(KeyCode.E))
+                    return true;
+            }
+            else
+                animations.ResetIK();
+            return false;
+        }, typeof(InteractionState));
 
         var airbornState = new AirbornState(movementStateMachine);
         movementStateMachine.AddState(typeof(AirbornState), airbornState);
@@ -168,6 +190,9 @@ public class MovementManager : MonoBehaviour
         var goOntoPlatformState = new GetUpOnPlatformState(movementStateMachine);
         movementStateMachine.AddState(typeof(GetUpOnPlatformState), goOntoPlatformState);
         AddTransitionWithPrediquete(goOntoPlatformState, (x) => { return goOntoPlatformState.IsDone; }, typeof(AirbornState));
+
+        var interactionState = new InteractionState(movementStateMachine);
+        movementStateMachine.AddState(typeof(InteractionState), interactionState);
 
         movementStateMachine.ChangeState(typeof(GroundedState));
     }

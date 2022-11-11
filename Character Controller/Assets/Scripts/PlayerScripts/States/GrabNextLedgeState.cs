@@ -39,7 +39,7 @@ public class GrabNextLedgeState : MoveState
             owner.velocity = offset.normalized * 3;
 
             if (offset.magnitude < .2f)
-                owner.animations.HandToLedge(owner.CurrentLedge);
+                owner.animations.HandToObject(owner.CurrentLedge, true);
         }
         else {
             isDone = true;
