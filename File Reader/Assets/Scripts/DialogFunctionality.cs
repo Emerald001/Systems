@@ -5,10 +5,10 @@ using UnityEngine;
 public class DialogFunctionality
 {
     public void SetEvents() {
-        EventManager.Subscribe(EventType.ON_TEST_EVENT, OnTestCallRun);
+        EventManager<bool>.Subscribe(EventType.ON_TEST_EVENT, OnTestCallRun);
     }
 
-    public void OnTestCallRun() {
-        Debug.Log("AHAHAAAA");
+    public void OnTestCallRun(bool yes) {
+        Debug.Log("AHAHAAAA " + yes.ToString());
     }
 }

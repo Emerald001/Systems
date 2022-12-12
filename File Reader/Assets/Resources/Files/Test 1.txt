@@ -1,5 +1,9 @@
 You are <b>Gay</b>
 I am Gay
 We are Gay
-$ ON_TEST_EVENT true
+$ ON_TEST_EVENT bool true
 Yes Gay
+	@ Am I Gay?
+	@ Why am I Gay?
+	@ So we are Both Gay?
+	@ Wow

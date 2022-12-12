@@ -4,10 +4,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum TestEnum { 
-    ON_CALL_EVENT
-}
-
 public class FileReader : MonoBehaviour {
     public Text debugtext;
 
@@ -21,9 +17,14 @@ public class FileReader : MonoBehaviour {
     public char SpriteCommand;
 
     private int index;
+    private bool thingy;
+    private float thingy2;
 
     void Awake() {
         funcs.SetEvents();
+
+        Debug.Log(ParseType("Boolean"));
+        Debug.Log(ParseType("Boolean") == typeof(bool));
 
         var tmp = Resources.LoadAll<TextAsset>("Files/");
 
@@ -34,8 +35,6 @@ public class FileReader : MonoBehaviour {
 
         foreach (var item in tmp) {
             Files.Add(item.name, PrepFile(item));
-
-            Debug.Log(item.name + " " + Files[item.name].Length.ToString());
         }
 
         Commands.Add(EventCommand);
@@ -67,16 +66,8 @@ public class FileReader : MonoBehaviour {
 
         var command = CheckCommand(currentDialog[index], EventCommand);
         if (command != null) {
-            Debug.Log(EventCommand + " Called with " + command[0] + " as Command.");
-
-            if (ParseType(command[1]) == typeof(float))
-                EventManager<float>.Invoke(ParseEnum<EventType>(command[0]), float.Parse(command[2]));
-            if (ParseType(command[1]) == typeof(bool))
-                EventManager<bool>.Invoke(ParseEnum<EventType>(command[0]), bool.Parse(command[2]));
-            if (ParseType(command[1]) == typeof(string))
-                EventManager<string>.Invoke(ParseEnum<EventType>(command[0]), command[2]);
-
-            NextLine();
+            print(command[0] + command[1]);
+            CallCommand(command);
             return;
         }
 
@@ -89,22 +80,32 @@ public class FileReader : MonoBehaviour {
     }
 
     private string[] CheckCommand(string line, char commandChar) {
-        var tmp = line.ToCharArray();
+        var tmp = line.Trim().ToCharArray();
+        Debug.Log(tmp[0]);
 
         if (tmp[0] == commandChar) {
-            var output = line.Split(" "[0]);
-            var output2 = output[1].Split(" ");
-
-            return output2;
+            return line.Split(" ");
         }
 
         return null;
     }
 
-    //private void SendCommand(string event) => EventManager.Invoke(EventType.event);
+    private void CallCommand(string[] command) {
+        Debug.Log(EventCommand + " Called with " + command[1] + " as Command.");
 
-    private void DisplayCommand(TestEnum test) {
-        Debug.Log((int)test);
+        //replace with parse system, you know what I mean
+        if (ParseType(command[2]) == typeof(float))
+            EventManager<float>.Invoke(ParseEnum<EventType>(command[1]), float.Parse(command[3]));
+        if (ParseType(command[2]) == typeof(bool))
+            EventManager<bool>.Invoke(ParseEnum<EventType>(command[1]), bool.Parse(command[3]));
+        if (ParseType(command[2]) == typeof(string))
+            EventManager<string>.Invoke(ParseEnum<EventType>(command[1]), command[3]);
+
+        NextLine();
+    }
+
+    private void DisplayOptions() {
+
     }
 
     private IEnumerator DisplayText(string text) {
@@ -120,10 +121,10 @@ public class FileReader : MonoBehaviour {
         }
     }
     
-    public static T ParseEnum<T>(string value) {
+    private T ParseEnum<T>(string value) {
         return (T)Enum.Parse(typeof(T), value, true);
     }
-    public static Type ParseType(string value) {
-        return Type.GetType(value);
+    private Type ParseType(string value) {
+        return Type.GetType("System." + value);
     }
 }
