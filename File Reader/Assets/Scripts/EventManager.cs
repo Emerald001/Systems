@@ -4,7 +4,8 @@ using UnityEngine;
 
 public enum EventType {
     EMPTY,
-    ON_TEST_EVENT
+    ON_TEST_EVENT,
+    SET_TYPE_TIME
 }
 
 public static class EventManager {
