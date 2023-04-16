@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -24,6 +23,7 @@ public class WaveFunctionCollapse : MonoBehaviour
     public float floorDis;
     public float tileSize = 1;
 
+    public bool generateInstantly;
     public float generationSpeed;
 
     //Private Vars
@@ -74,12 +74,13 @@ public class WaveFunctionCollapse : MonoBehaviour
                 continue;
             }
 
-            var tmp = Instantiate(ObjectsPerTile[currentPos][Random.Range(0, ObjectsPerTile[currentPos].Count)], GetWorldPos(currentPos), Quaternion.identity);
+            int index = Random.Range(0, ObjectsPerTile[currentPos].Count);
+            TileComponent tmp = Instantiate(ObjectsPerTile[currentPos][index], GetWorldPos(currentPos), Quaternion.identity);
             tmp.name = tmp.name + " " + currentPos.ToString();
             ObjectsPerTile[currentPos].Clear();
             ObjectsPerTile[currentPos].Add(tmp);
 
-            var neighbours = GetNeighbours(currentPos);
+            Dictionary<Vector3Int, List<TileComponent>> neighbours = GetNeighbours(currentPos);
             RemoveTiles(neighbours, currentPos);
 
             foreach (var item in neighbours) {
@@ -92,7 +93,8 @@ public class WaveFunctionCollapse : MonoBehaviour
             OpenSet.RemoveAt(0);
             ClosedSet.Add(currentPos);
 
-            yield return new WaitForSeconds(generationSpeed);
+            if(!generateInstantly)
+                yield return new WaitForSeconds(generationSpeed);
         }
 
         for (int i = EndCapPositions.Count - 1; i > -1; i--) {
@@ -118,47 +120,34 @@ public class WaveFunctionCollapse : MonoBehaviour
         }
 
         return output;
-    } 
+    }
 
     public void RemoveTiles(Dictionary<Vector3Int, List<TileComponent>> listPerNeighbour, Vector3Int ownPos) {
         var ownTile = ObjectsPerTile[ownPos][0];
 
         foreach (var item in listPerNeighbour) {
             var neighbourList = item.Value;
+            var axis = item.Key;
 
-            for (int i = neighbourList.Count - 1; i > -1; i--) {
-                if (item.Key.x > 0) {
-                    if (ownTile.xAs.x != neighbourList[i].xAs.y) {
-                        neighbourList.Remove(neighbourList[i]);
-                    }
-                }
-                else if (item.Key.x < 0) {
-                    if (ownTile.xAs.y != neighbourList[i].xAs.x) {
-                        neighbourList.Remove(neighbourList[i]);
-                    }
-                }
+            for (int i = neighbourList.Count - 1; i >= 0; i--) {
+                var neighbourTile = neighbourList[i];
+                bool removeTile = false;
 
-                if (item.Key.y > 0) {
-                    if (ownTile.yAs.x != neighbourList[i].yAs.y) {
-                        neighbourList.Remove(neighbourList[i]);
-                    }
-                }
-                else if (item.Key.y < 0) {
-                    if (ownTile.yAs.y != neighbourList[i].yAs.x) {
-                        neighbourList.Remove(neighbourList[i]);
-                    }
-                }
+                if (axis.x > 0 && ownTile.xAs.x != neighbourTile.xAs.y) 
+                    removeTile = true;
+                else if (axis.x < 0 && ownTile.xAs.y != neighbourTile.xAs.x) 
+                    removeTile = true;
+                else if (axis.y > 0 && ownTile.yAs.x != neighbourTile.yAs.y) 
+                    removeTile = true;
+                else if (axis.y < 0 && ownTile.yAs.y != neighbourTile.yAs.x) 
+                    removeTile = true;
+                else if (axis.z > 0 && ownTile.zAs.x != neighbourTile.zAs.y) 
+                    removeTile = true;
+                else if (axis.z < 0 && ownTile.zAs.y != neighbourTile.zAs.x) 
+                    removeTile = true;
 
-                if (item.Key.z > 0) {
-                    if (ownTile.zAs.x != neighbourList[i].zAs.y) {
-                        neighbourList.Remove(neighbourList[i]);
-                    }
-                }
-                else if (item.Key.z < 0) {
-                    if (ownTile.zAs.y != neighbourList[i].zAs.x) {
-                        neighbourList.Remove(neighbourList[i]);
-                    }
-                }
+                if (removeTile)
+                    neighbourList.RemoveAt(i);
             }
         }
     }
@@ -237,166 +226,92 @@ public class WaveFunctionCollapse : MonoBehaviour
     public void GetEndCap(Vector3Int pos) {
         ObjectsPerTile[pos].Clear();
 
-        List<TileComponent> tmplist = new();
-        foreach (var item in AllEndTiles) {
-            tmplist.Add(item);
-        }
+        List<TileComponent> endTiles = new();
+        foreach (var endTile in AllEndTiles)
+            endTiles.Add(endTile);
 
-        ObjectsPerTile[pos] = tmplist;
+        ObjectsPerTile[pos] = endTiles;
 
         CheckForEdge(pos);
 
-        for (int x = -1; x <= 1; x++) {
-            if ((pos + new Vector3Int(x, 0, 0)).x < 0 || (pos + new Vector3Int(x, 0, 0)).x > xAxis || x == 0)
-                continue;
+        RemoveInvalidEndTiles(pos, new Vector3Int(1, 0, 0));
+        RemoveInvalidEndTiles(pos, new Vector3Int(0, 1, 0));
+        RemoveInvalidEndTiles(pos, new Vector3Int(0, 0, 1));
 
-            if (!ObjectsPerTile.ContainsKey(pos + new Vector3Int(x, 0, 0)))
-                continue;
-
-            var neighbourTile = ObjectsPerTile[pos + new Vector3Int(x, 0, 0)][0];
-
-            for (int i = ObjectsPerTile[pos].Count - 1; i > -1; i--) {
-                if (x < 0) {
-                    if (neighbourTile.xAs.x != ObjectsPerTile[pos][i].xAs.y) {
-                        ObjectsPerTile[pos].Remove(ObjectsPerTile[pos][i]);
-                    }
-                }
-                else {
-                    if (neighbourTile.xAs.y != ObjectsPerTile[pos][i].xAs.x) {
-                        ObjectsPerTile[pos].Remove(ObjectsPerTile[pos][i]);
-                    }
-                }
-            }
-        }
-        if (tmplist.Count < 1) {
-            Debug.LogError("Cap needed for " + pos.ToString() + " does not exist");
+        if (endTiles.Count < 1) {
+            Debug.LogError($"Cap needed for {pos} does not exist");
             return;
         }
 
-        for (int y = -1; y <= 1; y++) {
-            if ((pos + new Vector3Int(0, y, 0)).y < 0 || (pos + new Vector3Int(0, y, 0)).y > yAxis || y == 0)
-                continue;
-
-            if (!ObjectsPerTile.ContainsKey(pos + new Vector3Int(0, y, 0)))
-                continue;
-
-            if (EndCapPositions.Contains(pos + new Vector3Int(0, y, 0))) {
-                for (int i = ObjectsPerTile[pos].Count - 1; i > -1; i--) {
-                    var TileComponent = ObjectsPerTile[pos][i];
-
-                    if (y > 0) {
-                        if (TileComponent.yAs.x > 0) {
-                            ObjectsPerTile[pos].Remove(ObjectsPerTile[pos][i]);
-                        }
-                    }
-                    else {
-                        if (TileComponent.yAs.y > 0) {
-                            ObjectsPerTile[pos].Remove(ObjectsPerTile[pos][i]);
-                        }
-                    }
-                }
-                continue;
-            }
-
-            var neighbourTile = ObjectsPerTile[pos + new Vector3Int(0, y, 0)][0];
-
-            for (int i = ObjectsPerTile[pos].Count - 1; i > -1; i--) {
-                if (y < 0) {
-                    if (neighbourTile.yAs.x != ObjectsPerTile[pos][i].yAs.y) {
-                        ObjectsPerTile[pos].Remove(ObjectsPerTile[pos][i]);
-                    }
-                }
-                else {
-                    if (neighbourTile.yAs.y != ObjectsPerTile[pos][i].yAs.x) {
-                        ObjectsPerTile[pos].Remove(ObjectsPerTile[pos][i]);
-                    }
-                }
-            }
-        }
-        if (tmplist.Count < 1) {
-            Debug.LogError("Cap needed for " + pos.ToString() + " does not exist");
-            return;
-        }
-
-        for (int z = -1; z <= 1; z++) {
-            if ((pos + new Vector3Int(0, 0, z)).z < 0 || (pos + new Vector3Int(0, 0, z)).z > zAxis || z == 0)
-                continue;
-
-            if (!ObjectsPerTile.ContainsKey(pos + new Vector3Int(0, 0, z)))
-                continue;
-            
-            var neighbourTile = ObjectsPerTile[pos + new Vector3Int(0, 0, z)][0];
-
-            for (int i = ObjectsPerTile[pos].Count - 1; i > -1; i--) {
-                if (z < 0) {
-                    if (neighbourTile.zAs.x != ObjectsPerTile[pos][i].zAs.y) {
-                        ObjectsPerTile[pos].Remove(ObjectsPerTile[pos][i]);
-                    }
-                }
-                else {
-                    if (neighbourTile.zAs.y != ObjectsPerTile[pos][i].zAs.x) {
-                        ObjectsPerTile[pos].Remove(ObjectsPerTile[pos][i]);
-                    }
-                }
-            }
-        }
-
-        if (tmplist.Count < 1) {
-            Debug.LogError("Cap needed for " + pos.ToString() + " does not exist");
-            return;
-        }
-
-        var tmp = Instantiate(ObjectsPerTile[pos][Random.Range(0, ObjectsPerTile[pos].Count)], GetWorldPos(pos), Quaternion.identity);
-        tmp.name = tmp.name + " " + pos.ToString();
+        var tile = Instantiate(endTiles[Random.Range(0, endTiles.Count)], GetWorldPos(pos), Quaternion.identity);
+        tile.name += $" {pos}";
         ObjectsPerTile[pos].Clear();
-        ObjectsPerTile[pos].Add(tmp);
+        ObjectsPerTile[pos].Add(tile);
 
         EndCapPositions.Remove(pos);
     }
 
+    private void RemoveInvalidEndTiles(Vector3Int pos, Vector3Int dir) {
+        for (int i = ObjectsPerTile[pos].Count - 1; i >= 0; i--) {
+            if (!ObjectsPerTile.ContainsKey(pos + dir)) {
+                continue;
+            }
+
+            var neighbourTile = ObjectsPerTile[pos + dir][0];
+            var tile = ObjectsPerTile[pos][i];
+
+            if (dir.x != 0) {
+                if ((dir.x < 0 && neighbourTile.xAs.x != tile.xAs.y) ||
+                    (dir.x > 0 && neighbourTile.xAs.y != tile.xAs.x)) {
+                    ObjectsPerTile[pos].RemoveAt(i);
+                }
+            }
+            else if (dir.y != 0) {
+                if ((dir.y < 0 && neighbourTile.yAs.x != tile.yAs.y) ||
+                    (dir.y > 0 && neighbourTile.yAs.y != tile.yAs.x)) {
+                    ObjectsPerTile[pos].RemoveAt(i);
+                }
+            }
+            else if (dir.z != 0) {
+                if ((dir.z < 0 && neighbourTile.zAs.x != tile.zAs.y) ||
+                    (dir.z > 0 && neighbourTile.zAs.y != tile.zAs.x)) {
+                    ObjectsPerTile[pos].RemoveAt(i);
+                }
+            }
+        }
+    }
+
     public IEnumerator RemoveUnusedCorridors() {
-        List<Vector3Int> OpenSet = new();
-        List<Vector3Int> ClosedSet = new();
+        List<Vector3Int> openSet = new();
+        List<Vector3Int> closedSet = new();
 
-        OpenSet.Add(spawnPoint);
+        openSet.Add(spawnPoint);
 
-        while (OpenSet.Count > 0) {
-            var currentpos = OpenSet[0];
+        while (openSet.Count > 0) {
+            var currentPos = openSet[0];
 
-            var owntile = ObjectsPerTile[currentpos][0].GetComponent<TileComponent>();
+            foreach (var neighbor in GetNeighborPositions(currentPos))
+                if (!openSet.Contains(neighbor) && !closedSet.Contains(neighbor)) 
+                    openSet.Add(neighbor);
 
-            if (owntile.xAs.x > 0)
-                if(!OpenSet.Contains(currentpos + new Vector3Int(1, 0, 0)) && !ClosedSet.Contains(currentpos + new Vector3Int(1, 0, 0)))
-                    OpenSet.Add(currentpos + new Vector3Int(1, 0, 0));
-            if (owntile.xAs.y > 0)
-                if (!OpenSet.Contains(currentpos + new Vector3Int(-1, 0, 0)) && !ClosedSet.Contains(currentpos + new Vector3Int(-1, 0, 0)))
-                    OpenSet.Add(currentpos + new Vector3Int(-1, 0, 0));
-            if (owntile.yAs.x > 0)
-                if (!OpenSet.Contains(currentpos + new Vector3Int(0, 1, 0)) && !ClosedSet.Contains(currentpos + new Vector3Int(0, 1, 0)))
-                    OpenSet.Add(currentpos + new Vector3Int(0, 1, 0));
-            if (owntile.yAs.y > 0)
-                if (!OpenSet.Contains(currentpos + new Vector3Int(0, -1, 0)) && !ClosedSet.Contains(currentpos + new Vector3Int(0, -1, 0)))
-                    OpenSet.Add(currentpos + new Vector3Int(0, -1, 0));
-            if (owntile.zAs.x > 0)
-                if (!OpenSet.Contains(currentpos + new Vector3Int(0, 0, 1)) && !ClosedSet.Contains(currentpos + new Vector3Int(0, 0, 1)))
-                    OpenSet.Add(currentpos + new Vector3Int(0, 0, 1));
-            if (owntile.zAs.y > 0)
-                if (!OpenSet.Contains(currentpos + new Vector3Int(0, 0, -1)) && !ClosedSet.Contains(currentpos + new Vector3Int(0, 0, -1)))
-                    OpenSet.Add(currentpos + new Vector3Int(0, 0, -1));
+            openSet.RemoveAt(0);
+            closedSet.Add(currentPos);
 
-            //var tmp = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            //var pos = GetWorldPos(currentpos);
-            //tmp.transform.position = new Vector3(pos.x, pos.y + 1, pos.z);
+            if (!generateInstantly) {
+                yield return new WaitForSeconds(generationSpeed);
 
-            OpenSet.RemoveAt(0);
-            ClosedSet.Add(currentpos);
-
-            yield return new WaitForSeconds(generationSpeed);
+                var tmp = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                var pos = GetWorldPos(currentPos);
+                tmp.transform.localScale = new Vector3(.1f, .1f, .1f);
+                tmp.transform.position = new Vector3(pos.x, pos.y + 1, pos.z);
+            }
         }
 
         foreach (var item in ObjectsPerTile) {
-            if (!ClosedSet.Contains(item.Key)) {
-                yield return new WaitForSeconds(generationSpeed);
+            if (!closedSet.Contains(item.Key)) {
+                if (!generateInstantly)
+                    yield return new WaitForSeconds(generationSpeed);
+
                 Destroy(item.Value[0].gameObject);
             }
         }
@@ -404,8 +319,21 @@ public class WaveFunctionCollapse : MonoBehaviour
         if (Player != null) {
             var spawnPos = new Vector3(GetWorldPos(spawnPoint).x, spawnPoint.y + 3, GetWorldPos(spawnPoint).z);
             Player.transform.position = spawnPos;
-            Debug.Log(spawnPos);
         }
+    }
+
+    private List<Vector3Int> GetNeighborPositions(Vector3Int currentPos) {
+        var ownTile = ObjectsPerTile[currentPos][0].GetComponent<TileComponent>();
+        var neighborPositions = new List<Vector3Int>();
+
+        if (ownTile.xAs.x > 0) neighborPositions.Add(currentPos + new Vector3Int(1, 0, 0));
+        if (ownTile.xAs.y > 0) neighborPositions.Add(currentPos + new Vector3Int(-1, 0, 0));
+        if (ownTile.yAs.x > 0) neighborPositions.Add(currentPos + new Vector3Int(0, 1, 0));
+        if (ownTile.yAs.y > 0) neighborPositions.Add(currentPos + new Vector3Int(0, -1, 0));
+        if (ownTile.zAs.x > 0) neighborPositions.Add(currentPos + new Vector3Int(0, 0, 1));
+        if (ownTile.zAs.y > 0) neighborPositions.Add(currentPos + new Vector3Int(0, 0, -1));
+
+        return neighborPositions;
     }
 
     public Vector3 GetWorldPos(Vector3Int gridpos) {
