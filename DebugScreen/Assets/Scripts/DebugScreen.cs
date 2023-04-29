@@ -11,34 +11,39 @@ public class DebugScreen : MonoBehaviour
 
     private Vector2 NextTextPos;
 
-    private List<FieldInfo> DebugFields = new();
-    private List<TextMeshProUGUI> Entries = new();
+    private readonly List<FieldInfo> DebugFields = new();
+    private readonly List<TextMeshProUGUI> Entries = new();
 
     private bool IsActive;
 
-    private void Start() {
+    private void Awake() {
         NextTextPos = TextStartPos;
 
         foreach (FieldInfo field in typeof(DebugVariables).GetFields()) {
+            if (field.Name.Contains("EmptyLine")) {
+                NextTextPos -= new Vector2(0, 30);
+                continue;
+            }
+
             DebugFields.Add(field);
 
-            TextMeshProUGUI tmp = Instantiate(TextPrefab, transform.GetChild(0));
-            tmp.transform.localPosition = NextTextPos;
-            tmp.text = $"{field.Name}: {field.GetValue(field.GetType())}";
-            Entries.Add(tmp);
+            Entries.Add(Instantiate(TextPrefab, transform.GetChild(0)));
+            Entries[^1].transform.localPosition = NextTextPos;
+            Entries[^1].text = $"{field.Name}: {field.GetValue(field.GetType())}";
 
             NextTextPos -= new Vector2(0, 30);
         }
     }
 
     private void Update() {
-        for (int i = 0; i < DebugFields.Count; i++) {
-            var tmp = Entries[i];
-            tmp.text = $"{DebugFields[i].Name}: {DebugFields[i].GetValue(DebugFields[i].GetType())}";
-        }
-
         if (Input.GetKeyDown(KeyCode.F3))
             ToggleScreen();
+
+        if (!IsActive)
+            return;
+
+        for (int i = 0; i < DebugFields.Count; i++)
+            Entries[i].text = $"{DebugFields[i].Name}: {DebugFields[i].GetValue(DebugFields[i].GetType())}";
     }
 
     private void ToggleScreen() {

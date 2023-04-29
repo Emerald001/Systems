@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class DebugConsole : MonoBehaviour
 {
@@ -35,14 +34,9 @@ public class DebugConsole : MonoBehaviour
                 throw new Exception("Must be two Bits");
 
             var split = field.text.Split(' ');
-
             if (commands.actions.ContainsKey(split[0]))
                 if (float.TryParse(split[1], out float value))
                     commands.actions[split[0]].Invoke(value);
-                else
-                    throw new Exception("Second Bit Must be a Value");
-            else
-                throw new Exception("No Such Command");
 
             ToggleScreen();
         }
