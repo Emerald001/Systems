@@ -1,5 +1,3 @@
-Hoi Tatum en Levi!
-
 Dit is je Cheatsheet!
 
 	Het is zo simpel als:
@@ -73,12 +71,10 @@ Dit is je Cheatsheet!
 
 		Maar ook Inline Commands!
 			Deze zijn heel erg als de commands van eerst, maar deze werken in een regel.
-				bijv: "Unknown: Ik praat nu tegen jou $ SET_TYPE_TIME 0,1 $ MAAR $ SET_TYPE_TIME 0,05 $ ik kan ook stoppen!"
+				bijv: "Unknown: Ik praat nu tegen jou $ SET_TYPE_TIME 0,1 $ MAAR $ SET_TYPE_TIME 0,05 $ ik kan ook langzamer praten!"
 				Wat het in dit geval doet is de snelheid van typen aanpassen naar wat langzamer voor alleen het woord MAAR, daarna word ie weer terug gezet.
 				Hier kan je dus vanalles doen, als je een geluidje wilt afspelen kan dat op dezelfde manier, maar dan met andere paramaters en een andere EventType ofc.
 
 	
 Je kan ook best wel los zijn met tabs en enters, probeer het wel bij 1 tab en 2 enters te houden, anders gaat ie alsnog huilen.
 Je kan een voorbeeld vinden in de folder "Resources\Files\Test 1.txt"
-
-Als je er nog vragen over hebt, stuur gerust een berichtje!

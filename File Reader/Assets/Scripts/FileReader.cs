@@ -1,32 +1,34 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class FileReader : MonoBehaviour {
-    [Header("Reference")]
-    public GameObject DialogueSystemObject;
-    public TextMeshProUGUI mainText;
-    public TextMeshProUGUI nameText;
-    public Image Portrait;
-    public GameObject buttonContainer;
-    public GameObject buttonPanel;
-    public GameObject buttonPrefab;
+    [Header("References")]
+    [SerializeField] private GameObject dialogueSystemObject;
+    [SerializeField] private TextMeshProUGUI mainText;
+    [SerializeField] private TextMeshProUGUI nameText;
+    [SerializeField] private Image portrait;
+    [SerializeField] private GameObject buttonContainer;
+    [SerializeField] private GameObject buttonPanel;
+    [SerializeField] private GameObject buttonPrefab;
 
     [Header("CommandSettings")]
-    public char CommandChar;
-    public char OptionChar;
-    public char SectionChar;
-    public char AutoNextChar;
+    [SerializeField] private char commandChar;
+    [SerializeField] private char optionChar;
+    [SerializeField] private char sectionChar;
+    [SerializeField] private char autoNextChar;
 
     [Header("Visual Settings")]
-    public float TimeBetweenChars;
-    [HideInInspector] public float currentTimeBetweenChars;
+    [SerializeField] private float timeBetweenChars;
 
-    private DialogFunctionality funcs = new();
+    public float CurrentTimeBetweenChars { get; set; }
+
     private Dictionary<string, string[]> Files = new();
+    private DialogFunctionality funcs = new();
+
     private string[] currentDialog;
     private int index;
     private bool IsWriting;
@@ -35,7 +37,7 @@ public class FileReader : MonoBehaviour {
         funcs.Owner = this;
         funcs.SetEvents();
 
-        currentTimeBetweenChars = TimeBetweenChars;
+        CurrentTimeBetweenChars = timeBetweenChars;
 
         var tmp = Resources.LoadAll<TextAsset>("Files/");
 
@@ -62,7 +64,7 @@ public class FileReader : MonoBehaviour {
         if (Files.ContainsKey(DialogName)) {
             index = 0;
             currentDialog = Files[DialogName];
-            DialogueSystemObject.SetActive(true);
+            dialogueSystemObject.SetActive(true);
             NextLine();
         }
         else
@@ -87,9 +89,9 @@ public class FileReader : MonoBehaviour {
             return;
         }
 
-        currentTimeBetweenChars = TimeBetweenChars;
+        CurrentTimeBetweenChars = timeBetweenChars;
 
-        var command = CheckCommand(currentDialog[index], CommandChar);
+        var command = CheckCommand(currentDialog[index], commandChar);
         if (command != null) {
             CallCommand(command);
 
@@ -98,13 +100,13 @@ public class FileReader : MonoBehaviour {
             return;
         }
 
-        var option = CheckCommand(currentDialog[index], OptionChar);
+        var option = CheckCommand(currentDialog[index], optionChar);
         if (option != null) {
             DisplayOptions(currentDialog);
             return;
         }
 
-        var section = CheckCommand(currentDialog[index], SectionChar);
+        var section = CheckCommand(currentDialog[index], sectionChar);
         if (section != null) {
             var line = currentDialog[index].Trim().Split(" ");
             if (line[1] == "jump") {
@@ -164,7 +166,7 @@ public class FileReader : MonoBehaviour {
 
             index++;
             
-            if (CheckCommand(file[index], SectionChar) != null) {
+            if (CheckCommand(file[index], sectionChar) != null) {
                 if (file[index].Trim().Split(" ")[1] == "jump") {
                     string sectionName = file[index].Trim().Split(" ")[2];
                     tmpButton.GetComponent<Button>().onClick.AddListener(() => JumpToSection(sectionName));
@@ -197,7 +199,7 @@ public class FileReader : MonoBehaviour {
 
     private void JumpToSection(string SectionName) {
         for (int i = 0; i < currentDialog.Length; i++) {
-            if (CheckCommand(currentDialog[i], SectionChar) != null) {
+            if (CheckCommand(currentDialog[i], sectionChar) != null) {
                 var line = currentDialog[i].Trim().Split(" ");
                 if (line[1] == "start" && line[2] == SectionName) {
                     index = i;
@@ -221,13 +223,13 @@ public class FileReader : MonoBehaviour {
         var sentence = frontAndBack[1];
 
         for (int i = 0; i < sentence.Length; i++) {
-            if(sentence[i] == CommandChar) {
-                List<char> command = new();
-
-                command.Add(sentence[i]);
+            if(sentence[i] == commandChar) {
+                List<char> command = new() {
+                    sentence[i]
+                };
                 i++;
 
-                while (sentence[i] != CommandChar) {
+                while (sentence[i] != commandChar) {
                     command.Add(sentence[i]);
                     i++;
                 }
@@ -279,7 +281,7 @@ public class FileReader : MonoBehaviour {
                     mainText.text = new string(Final.ToArray());
                     //Do Typewriter Noise
 
-                    yield return new WaitForSeconds(currentTimeBetweenChars);
+                    yield return new WaitForSeconds(CurrentTimeBetweenChars);
                 }
 
                 charList.AddRange(stylePartOne);
@@ -294,10 +296,10 @@ public class FileReader : MonoBehaviour {
             mainText.text = new string(charList.ToArray());
             //Do Typewriter Noise
 
-            yield return new WaitForSeconds(currentTimeBetweenChars);
+            yield return new WaitForSeconds(CurrentTimeBetweenChars);
         }
 
-        var autoSkip = CheckCommand(currentDialog[index], AutoNextChar);
+        var autoSkip = CheckCommand(currentDialog[index], autoNextChar);
         if (autoSkip != null) {
             index++;
             IsWriting = false;
@@ -320,13 +322,13 @@ public class FileReader : MonoBehaviour {
         int i = 0;
 
         while (i < sentence.Length) {
-            if (sentence[i] == CommandChar) {
-                List<char> command = new();
-
-                command.Add(sentence[i]);
+            if (sentence[i] == commandChar) {
+                List<char> command = new() {
+                    sentence[i]
+                };
                 i++;
 
-                while (sentence[i] != CommandChar) {
+                while (sentence[i] != commandChar) {
                     command.Add(sentence[i]);
                     i++;
                 }
@@ -347,7 +349,7 @@ public class FileReader : MonoBehaviour {
 
         mainText.text = new string(charList.ToArray());
 
-        var autoSkip = CheckCommand(currentDialog[index], AutoNextChar);
+        var autoSkip = CheckCommand(currentDialog[index], autoNextChar);
         if (autoSkip != null) {
             index++;
             IsWriting = false;

@@ -16,6 +16,6 @@ public class DialogFunctionality
     }
 
     public void SetSpeed(float speed) {
-        Owner.currentTimeBetweenChars = speed;
+        Owner.CurrentTimeBetweenChars = speed;
     }
 }

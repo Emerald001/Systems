@@ -216,7 +216,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 879808639}
-  - {fileID: 1611955865}
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -466,7 +465,7 @@ GameObject:
   - component: {fileID: 879808641}
   - component: {fileID: 879808640}
   m_Layer: 5
-  m_Name: Panel
+  m_Name: DialogSystemHolder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -486,6 +485,7 @@ RectTransform:
   m_Children:
   - {fileID: 1936489277}
   - {fileID: 625424634}
+  - {fileID: 1611955865}
   m_Father: {fileID: 224071083}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -561,18 +561,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65dd1d09d5185bc4ab343604d1a8e799, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DialogueSystemObject: {fileID: 879808638}
+  dialogueSystemObject: {fileID: 879808638}
   mainText: {fileID: 625424635}
   nameText: {fileID: 1936489278}
-  Portrait: {fileID: 0}
+  portrait: {fileID: 0}
   buttonContainer: {fileID: 2072601917}
   buttonPanel: {fileID: 1611955864}
   buttonPrefab: {fileID: 5811112845544500980, guid: a2e30926eb968184fab355948e5e0270, type: 3}
-  CommandChar: 36
-  OptionChar: 64
-  SectionChar: 37
-  AutoNextChar: 38
-  TimeBetweenChars: 0.1
+  commandChar: 36
+  optionChar: 64
+  sectionChar: 37
+  autoNextChar: 38
+  timeBetweenChars: 0.1
 --- !u!4 &922589773
 Transform:
   m_ObjectHideFlags: 0
@@ -752,7 +752,7 @@ GameObject:
   - component: {fileID: 1611955867}
   - component: {fileID: 1611955866}
   m_Layer: 5
-  m_Name: Panel
+  m_Name: ButtonPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -771,8 +771,8 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2072601918}
-  m_Father: {fileID: 224071083}
-  m_RootOrder: 1
+  m_Father: {fileID: 879808639}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
