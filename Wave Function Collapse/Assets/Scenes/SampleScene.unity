@@ -677,7 +677,7 @@ MonoBehaviour:
   density: 1
   floorDis: 5
   tileSize: 1
-  generateInstantly: 1
+  generateInstantly: 0
   generationSpeed: 0.0001
 --- !u!4 &1715109508
 Transform:

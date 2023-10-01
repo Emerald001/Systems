@@ -7,28 +7,28 @@ public class WaveFunctionCollapse : MonoBehaviour
     private const int MAX_DENSITY = 100;
 
     [Header("References")]
-    public GameObject Player;
-    public TileComponent BossRoom;
-    public List<TileComponent> AllTiles = new();
-    public List<TileComponent> AllEndTiles = new();
+    [SerializeField] private GameObject Player;
+    [SerializeField] private TileComponent BossRoom;
+    [SerializeField] private List<TileComponent> AllTiles = new();
+    [SerializeField] private List<TileComponent> AllEndTiles = new();
 
     [Header("Grid Setting")]
-    public int xAxis;
-    public int yAxis;
-    public int zAxis;
+    [SerializeField] private int xAxis;
+    [SerializeField] private int yAxis;
+    [SerializeField] private int zAxis;
 
     [Range(1, MAX_DENSITY)]
     public int density;
 
-    public float floorDis;
-    public float tileSize = 1;
+    [SerializeField] private float floorDis;
+    [SerializeField] private float tileSize = 1;
 
-    public bool generateInstantly;
-    public float generationSpeed;
+    [SerializeField] private bool generateInstantly;
+    [SerializeField] private float generationSpeed;
 
     //Private Vars
-    private Dictionary<Vector3Int, List<TileComponent>> ObjectsPerTile = new();
-    private List<Vector3Int> EndCapPositions = new();
+    private readonly Dictionary<Vector3Int, List<TileComponent>> ObjectsPerTile = new();
+    private readonly List<Vector3Int> EndCapPositions = new();
 
     private Vector3Int spawnPoint;
 
@@ -46,9 +46,8 @@ public class WaveFunctionCollapse : MonoBehaviour
                 for (int z = 0; z < zAxis; z++) {
                     List<TileComponent> tmplist = new();
 
-                    foreach (var item in AllTiles) {
+                    foreach (var item in AllTiles)
                         tmplist.Add(item);
-                    }
 
                     ObjectsPerTile.Add(new Vector3Int(x, y, z), tmplist);
                     CheckForEdge(new Vector3Int(x, y, z));
@@ -67,7 +66,7 @@ public class WaveFunctionCollapse : MonoBehaviour
         while (OpenSet.Count > 0) {
             Vector3Int currentPos = OpenSet[0];
 
-            if(ObjectsPerTile[currentPos].Count < 1) {
+            if (ObjectsPerTile[currentPos].Count < 1) {
                 EndCapPositions.Add(currentPos);
                 OpenSet.RemoveAt(0);
                 ClosedSet.Add(currentPos);
@@ -75,12 +74,13 @@ public class WaveFunctionCollapse : MonoBehaviour
             }
 
             int index = Random.Range(0, ObjectsPerTile[currentPos].Count);
-            TileComponent tmp = Instantiate(ObjectsPerTile[currentPos][index], GetWorldPos(currentPos), Quaternion.identity);
-            tmp.name = tmp.name + " " + currentPos.ToString();
-            ObjectsPerTile[currentPos].Clear();
-            ObjectsPerTile[currentPos].Add(tmp);
+            var tile = Instantiate(ObjectsPerTile[currentPos][index], GetWorldPos(currentPos), Quaternion.identity);
+            tile.name = tile.name + " " + currentPos.ToString();
 
-            Dictionary<Vector3Int, List<TileComponent>> neighbours = GetNeighbours(currentPos);
+            ObjectsPerTile[currentPos].Clear();
+            ObjectsPerTile[currentPos].Add(tile);
+
+            var neighbours = GetNeighbours(currentPos);
             RemoveTiles(neighbours, currentPos);
 
             foreach (var item in neighbours) {
@@ -93,13 +93,12 @@ public class WaveFunctionCollapse : MonoBehaviour
             OpenSet.RemoveAt(0);
             ClosedSet.Add(currentPos);
 
-            if(!generateInstantly)
+            if (!generateInstantly)
                 yield return new WaitForSeconds(generationSpeed);
         }
 
-        for (int i = EndCapPositions.Count - 1; i > -1; i--) {
+        for (int i = EndCapPositions.Count - 1; i > -1; i--)
             GetEndCap(EndCapPositions[i]);
-        }
 
         StartCoroutine(RemoveUnusedCorridors());
     }
@@ -108,16 +107,16 @@ public class WaveFunctionCollapse : MonoBehaviour
         Dictionary<Vector3Int, List<TileComponent>> output = new();
 
         for (int x = -1; x <= 1; x++)
-        for (int y = -1; y <= 1; y++)
-        for (int z = -1; z <= 1; z++) {
-            if (!ObjectsPerTile.ContainsKey(pos + new Vector3Int(x, y, z)))
-                continue;
+            for (int y = -1; y <= 1; y++)
+                for (int z = -1; z <= 1; z++) {
+                    if (!ObjectsPerTile.ContainsKey(pos + new Vector3Int(x, y, z)))
+                        continue;
 
-            if (Mathf.Abs(x) + Mathf.Abs(y) + Mathf.Abs(z) > 1 || Mathf.Abs(x) + Mathf.Abs(y) + Mathf.Abs(z) < 1)
-                continue;
+                    if (Mathf.Abs(x) + Mathf.Abs(y) + Mathf.Abs(z) > 1 || Mathf.Abs(x) + Mathf.Abs(y) + Mathf.Abs(z) < 1)
+                        continue;
 
-            output.Add(new Vector3Int(x, y, z), ObjectsPerTile[pos + new Vector3Int(x, y, z)]);
-        }
+                    output.Add(new Vector3Int(x, y, z), ObjectsPerTile[pos + new Vector3Int(x, y, z)]);
+                }
 
         return output;
     }
@@ -127,7 +126,7 @@ public class WaveFunctionCollapse : MonoBehaviour
 
         foreach (var item in listPerNeighbour) {
             var neighbourList = item.Value;
-            var axis = item.Key;
+            Vector3Int axis = item.Key;
 
             for (int i = neighbourList.Count - 1; i >= 0; i--) {
                 var neighbourTile = neighbourList[i];
@@ -161,17 +160,15 @@ public class WaveFunctionCollapse : MonoBehaviour
 
             if ((pos + new Vector3Int(x, 0, 0)).x < 0) {
                 for (int i = TileList.Count - 1; i > -1; i--) {
-                    if (TileList[i].xAs.y != 0) {
+                    if (TileList[i].xAs.y != 0)
                         TileList.Remove(TileList[i]);
-                    }
                 }
             }
 
             if ((pos + new Vector3Int(x, 0, 0)).x >= xAxis) {
                 for (int i = TileList.Count - 1; i > -1; i--) {
-                    if (TileList[i].xAs.x != 0) {
+                    if (TileList[i].xAs.x != 0)
                         TileList.Remove(TileList[i]);
-                    }
                 }
             }
         }
@@ -184,17 +181,15 @@ public class WaveFunctionCollapse : MonoBehaviour
 
             if((pos + new Vector3Int(0, y, 0)).y < 0) {
                 for (int i = TileList.Count - 1; i > -1; i--) {
-                    if (TileList[i].yAs.y != 0) {
+                    if (TileList[i].yAs.y != 0) 
                         TileList.Remove(TileList[i]);
-                    }
                 }
             }
 
             if ((pos + new Vector3Int(0, y, 0)).y >= yAxis) {
                 for (int i = TileList.Count - 1; i > -1; i--) {
-                    if (TileList[i].yAs.x != 0) {
+                    if (TileList[i].yAs.x != 0) 
                         TileList.Remove(TileList[i]);
-                    }
                 }
             }
         }
@@ -207,22 +202,20 @@ public class WaveFunctionCollapse : MonoBehaviour
 
             if ((pos + new Vector3Int(0, 0, z)).z < 0) {
                 for (int i = TileList.Count - 1; i > -1; i--) {
-                    if (TileList[i].zAs.y != 0) {
+                    if (TileList[i].zAs.y != 0) 
                         TileList.Remove(TileList[i]);
-                    }
                 }
             }
 
             if ((pos + new Vector3Int(0, 0, z)).z >= zAxis) {
                 for (int i = TileList.Count - 1; i > -1; i--) {
-                    if (TileList[i].zAs.x != 0) {
+                    if (TileList[i].zAs.x != 0) 
                         TileList.Remove(TileList[i]);
-                    }
                 }
             }
         }
     }
-
+     
     public void GetEndCap(Vector3Int pos) {
         ObjectsPerTile[pos].Clear();
 
@@ -253,30 +246,23 @@ public class WaveFunctionCollapse : MonoBehaviour
 
     private void RemoveInvalidEndTiles(Vector3Int pos, Vector3Int dir) {
         for (int i = ObjectsPerTile[pos].Count - 1; i >= 0; i--) {
-            if (!ObjectsPerTile.ContainsKey(pos + dir)) {
+            if (!ObjectsPerTile.ContainsKey(pos + dir))
                 continue;
-            }
 
             var neighbourTile = ObjectsPerTile[pos + dir][0];
             var tile = ObjectsPerTile[pos][i];
 
             if (dir.x != 0) {
-                if ((dir.x < 0 && neighbourTile.xAs.x != tile.xAs.y) ||
-                    (dir.x > 0 && neighbourTile.xAs.y != tile.xAs.x)) {
+                if ((dir.x < 0 && neighbourTile.xAs.x != tile.xAs.y) || (dir.x > 0 && neighbourTile.xAs.y != tile.xAs.x)) 
                     ObjectsPerTile[pos].RemoveAt(i);
-                }
             }
             else if (dir.y != 0) {
-                if ((dir.y < 0 && neighbourTile.yAs.x != tile.yAs.y) ||
-                    (dir.y > 0 && neighbourTile.yAs.y != tile.yAs.x)) {
+                if ((dir.y < 0 && neighbourTile.yAs.x != tile.yAs.y) || (dir.y > 0 && neighbourTile.yAs.y != tile.yAs.x)) 
                     ObjectsPerTile[pos].RemoveAt(i);
-                }
             }
             else if (dir.z != 0) {
-                if ((dir.z < 0 && neighbourTile.zAs.x != tile.zAs.y) ||
-                    (dir.z > 0 && neighbourTile.zAs.y != tile.zAs.x)) {
+                if ((dir.z < 0 && neighbourTile.zAs.x != tile.zAs.y) || (dir.z > 0 && neighbourTile.zAs.y != tile.zAs.x)) 
                     ObjectsPerTile[pos].RemoveAt(i);
-                }
             }
         }
     }
@@ -288,7 +274,7 @@ public class WaveFunctionCollapse : MonoBehaviour
         openSet.Add(spawnPoint);
 
         while (openSet.Count > 0) {
-            var currentPos = openSet[0];
+            Vector3Int currentPos = openSet[0];
 
             foreach (var neighbor in GetNeighborPositions(currentPos))
                 if (!openSet.Contains(neighbor) && !closedSet.Contains(neighbor)) 
@@ -301,7 +287,7 @@ public class WaveFunctionCollapse : MonoBehaviour
                 yield return new WaitForSeconds(generationSpeed);
 
                 var tmp = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                var pos = GetWorldPos(currentPos);
+                Vector3 pos = GetWorldPos(currentPos);
                 tmp.transform.localScale = new Vector3(.1f, .1f, .1f);
                 tmp.transform.position = new Vector3(pos.x, pos.y + 1, pos.z);
             }
@@ -317,7 +303,7 @@ public class WaveFunctionCollapse : MonoBehaviour
         }
 
         if (Player != null) {
-            var spawnPos = new Vector3(GetWorldPos(spawnPoint).x, spawnPoint.y + 3, GetWorldPos(spawnPoint).z);
+            Vector3 spawnPos = new Vector3(GetWorldPos(spawnPoint).x, spawnPoint.y + 3, GetWorldPos(spawnPoint).z);
             Player.transform.position = spawnPos;
         }
     }
