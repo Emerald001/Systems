@@ -338,6 +338,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c394dda4f458cc64f87e54e820a173b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  xAs: {x: 1, y: 1}
-  yAs: {x: 0, y: 0}
-  zAs: {x: 1, y: 1}
+  xAs:
+  - {x: 1, y: 1}
+  yAs:
+  - {x: 0, y: 0}
+  zAs:
+  - {x: 1, y: 1}
