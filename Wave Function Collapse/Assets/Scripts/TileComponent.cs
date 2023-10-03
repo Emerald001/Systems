@@ -1,64 +1,69 @@
 using System;
-using UnityEditor;
+using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 [Serializable]
 public class TileComponent : MonoBehaviour
 {
-    public Vector2 xAs = new();
-    public Vector2 yAs = new();
-    public Vector2 zAs = new();
-}
+    public List<Vector2> xAs = new();
+    public List<Vector2> yAs = new();
+    public List<Vector2> zAs = new();
 
-[Serializable]
-public class MultiTileComponent : MonoBehaviour {
-    public Vector2Int size = new();
+    public List<int> AvailableIndices { get; private set; } = new();
+    public Dictionary<int, Vector2Int> GridPositionsFromIndex { get; private set; } = new();
 
-    public TileComponent[] tileComponents;
-}
-
-[CustomPropertyDrawer(typeof(MultiTileComponent))]
-public class MultiTileComponentDrawer : PropertyDrawer {
-    public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
-        // Using BeginProperty / EndProperty on the parent property means that
-        // prefab override logic works on the entire property.
-        EditorGUI.BeginProperty(position, label, property);
-
-        // Draw label
-        position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
-
-        // Don't make child fields be indented
-        var indent = EditorGUI.indentLevel;
-        EditorGUI.indentLevel = 0;
-
-        // Calculate rects
-        var amountRect = new Rect(position.x, position.y, 30, position.height);
-        var unitRect = new Rect(position.x + 35, position.y, 50, position.height);
-        var nameRect = new Rect(position.x + 90, position.y, position.width - 90, position.height);
-
-        // Draw fields - pass GUIContent.none to each so they are drawn without labels
-        EditorGUI.PropertyField(amountRect, property.FindPropertyRelative("amount"), GUIContent.none);
-        EditorGUI.PropertyField(unitRect, property.FindPropertyRelative("unit"), GUIContent.none);
-        EditorGUI.PropertyField(nameRect, property.FindPropertyRelative("name"), GUIContent.none);
-
-        var tmp = property.FindPropertyRelative("size").vector2IntValue;
-        int amount = tmp.x * tmp.y;
-
-        SerializedProperty listProperty = property.FindPropertyRelative("tileComponents");
-        if (listProperty.CountInProperty() == amount)
-            listProperty
-        
-        foreach (var item in listProperty) {
-
+    private void Awake() {
+        int counter = 0;
+        for (int x = 0; x < xAs.Count; x++) {
+            for (int y = 0; y < yAs.Count; y++) {
+                GridPositionsFromIndex.Add(counter, new Vector2Int(x, y));
+                AvailableIndices.Add(counter);
+                counter++;
+            }
         }
-
-        // Set indent back to what it was
-        EditorGUI.indentLevel = indent;
-
-        EditorGUI.EndProperty();
     }
 
-    public void DrawTileComponents(Rect position, SerializedProperty property) {
+    // First int is the Index, Second is the Connection
+    public Dictionary<int, int> GetIndicesFromDirection(Vector2Int xAs, Vector2Int yAs, Vector2Int zAs) {
+        Dictionary<int, int> result = new();
 
+        int width = this.xAs.Count;
+        int height = this.yAs.Count;
+        int depth = this.zAs.Count;
+
+        // Currently only works for 2D
+
+        if (xAs.x == 1) {
+            for (int i = 0; i < depth; i++) {
+                if (i % width == 0) {
+                    int index = i / width;
+                    result.Add(i, (int)this.xAs[index].y);
+                }
+            }
+        }
+        else if (xAs.y == 1) {
+            for (int i = 0; i < depth; i++) {
+                if (i % width == 0) {
+                    int index = i / width;
+                    result.Add(i + (width - 1), (int)this.xAs[index].x);
+                }
+            }
+        }
+        else if(zAs.y == 1) {
+            for (int i = 0; i < width; i++)
+                result.Add(i, (int)this.zAs[i].x);
+        }
+        else if (zAs.x == 1) {
+            int amount = width * height;
+
+            int counter = 0;
+            for (int i = amount - width; i < amount; i++) {
+                result.Add(i, (int)this.zAs[counter].y);
+                counter++;
+            }
+        }
+
+        return result;
     }
 }

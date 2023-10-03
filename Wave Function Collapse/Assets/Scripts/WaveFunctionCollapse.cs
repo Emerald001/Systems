@@ -10,6 +10,7 @@ public class WaveFunctionCollapse : MonoBehaviour
     [SerializeField] private GameObject Player;
     [SerializeField] private TileComponent BossRoom;
     [SerializeField] private List<TileComponent> AllTiles = new();
+    [SerializeField] private List<TileComponent> AllMultiTiles = new();
     [SerializeField] private List<TileComponent> AllEndTiles = new();
 
     [Header("Grid Setting")]
@@ -126,26 +127,54 @@ public class WaveFunctionCollapse : MonoBehaviour
 
         foreach (var item in listPerNeighbour) {
             var neighbourList = item.Value;
+
             Vector3Int axis = item.Key;
+            Vector2Int xAs = new(axis.x > 0 ? 1 : 0, axis.x < 0 ? 1 : 0);
+            Vector2Int yAs = new(axis.y > 0 ? 1 : 0, axis.y < 0 ? 1 : 0);
+            Vector2Int zAs = new(axis.z > 0 ? 1 : 0, axis.z < 0 ? 1 : 0);
 
             for (int i = neighbourList.Count - 1; i >= 0; i--) {
                 var neighbourTile = neighbourList[i];
-                bool removeTile = false;
 
-                if (axis.x > 0 && ownTile.xAs.x != neighbourTile.xAs.y) 
-                    removeTile = true;
-                else if (axis.x < 0 && ownTile.xAs.y != neighbourTile.xAs.x) 
-                    removeTile = true;
-                else if (axis.y > 0 && ownTile.yAs.x != neighbourTile.yAs.y) 
-                    removeTile = true;
-                else if (axis.y < 0 && ownTile.yAs.y != neighbourTile.yAs.x) 
-                    removeTile = true;
-                else if (axis.z > 0 && ownTile.zAs.x != neighbourTile.zAs.y) 
-                    removeTile = true;
-                else if (axis.z < 0 && ownTile.zAs.y != neighbourTile.zAs.x) 
-                    removeTile = true;
+                var indexWithConnection = neighbourTile.GetIndicesFromDirection(xAs, yAs, zAs);
+                neighbourTile.AvailableIndices.Clear();
 
-                if (removeTile)
+                if (axis.x > 0) {
+                    foreach (var pair in indexWithConnection) {
+                        if (pair.Value == ownTile.xAs[0].x)
+                            neighbourTile.AvailableIndices.Add(pair.Key);
+                    }
+                }
+                else if (axis.x < 0) {
+                    foreach (var pair in indexWithConnection) {
+                        if (pair.Value == ownTile.xAs[0].y)
+                            neighbourTile.AvailableIndices.Add(pair.Key);
+                    }
+                }
+                                
+                //else if (axis.y > 0 && ownTile.yAs[0].x != neighbourTile.yAs[0].y) {
+                //    neighbourList.RemoveAt(i);
+                //    continue;
+                //}
+                //else if (axis.y < 0 && ownTile.yAs[0].y != neighbourTile.yAs[0].x) {
+                //    neighbourList.RemoveAt(i);
+                //    continue;
+                //}
+
+                else if (axis.z > 0) {
+                    foreach (var pair in indexWithConnection) {
+                        if (pair.Value == ownTile.zAs[0].x)
+                            neighbourTile.AvailableIndices.Add(pair.Key);
+                    }
+                }
+                else if (axis.z < 0) {
+                    foreach (var pair in indexWithConnection) {
+                        if (pair.Value == ownTile.zAs[0].y)
+                            neighbourTile.AvailableIndices.Add(pair.Key);
+                    }
+                }
+
+                if (neighbourTile.AvailableIndices.Count < 1)
                     neighbourList.RemoveAt(i);
             }
         }
@@ -160,14 +189,14 @@ public class WaveFunctionCollapse : MonoBehaviour
 
             if ((pos + new Vector3Int(x, 0, 0)).x < 0) {
                 for (int i = TileList.Count - 1; i > -1; i--) {
-                    if (TileList[i].xAs.y != 0)
+                    if (TileList[i].xAs[0].y != 0)
                         TileList.Remove(TileList[i]);
                 }
             }
 
             if ((pos + new Vector3Int(x, 0, 0)).x >= xAxis) {
                 for (int i = TileList.Count - 1; i > -1; i--) {
-                    if (TileList[i].xAs.x != 0)
+                    if (TileList[i].xAs[0].x != 0)
                         TileList.Remove(TileList[i]);
                 }
             }
@@ -181,14 +210,14 @@ public class WaveFunctionCollapse : MonoBehaviour
 
             if((pos + new Vector3Int(0, y, 0)).y < 0) {
                 for (int i = TileList.Count - 1; i > -1; i--) {
-                    if (TileList[i].yAs.y != 0) 
+                    if (TileList[i].yAs[0].y != 0) 
                         TileList.Remove(TileList[i]);
                 }
             }
 
             if ((pos + new Vector3Int(0, y, 0)).y >= yAxis) {
                 for (int i = TileList.Count - 1; i > -1; i--) {
-                    if (TileList[i].yAs.x != 0) 
+                    if (TileList[i].yAs[0].x != 0) 
                         TileList.Remove(TileList[i]);
                 }
             }
@@ -202,14 +231,14 @@ public class WaveFunctionCollapse : MonoBehaviour
 
             if ((pos + new Vector3Int(0, 0, z)).z < 0) {
                 for (int i = TileList.Count - 1; i > -1; i--) {
-                    if (TileList[i].zAs.y != 0) 
+                    if (TileList[i].zAs[0].y != 0) 
                         TileList.Remove(TileList[i]);
                 }
             }
 
             if ((pos + new Vector3Int(0, 0, z)).z >= zAxis) {
                 for (int i = TileList.Count - 1; i > -1; i--) {
-                    if (TileList[i].zAs.x != 0) 
+                    if (TileList[i].zAs[0].x != 0) 
                         TileList.Remove(TileList[i]);
                 }
             }
@@ -253,15 +282,15 @@ public class WaveFunctionCollapse : MonoBehaviour
             var tile = ObjectsPerTile[pos][i];
 
             if (dir.x != 0) {
-                if ((dir.x < 0 && neighbourTile.xAs.x != tile.xAs.y) || (dir.x > 0 && neighbourTile.xAs.y != tile.xAs.x)) 
+                if ((dir.x < 0 && neighbourTile.xAs[0].x != tile.xAs[0].y) || (dir.x > 0 && neighbourTile.xAs[0].y != tile.xAs[0].x)) 
                     ObjectsPerTile[pos].RemoveAt(i);
             }
             else if (dir.y != 0) {
-                if ((dir.y < 0 && neighbourTile.yAs.x != tile.yAs.y) || (dir.y > 0 && neighbourTile.yAs.y != tile.yAs.x)) 
+                if ((dir.y < 0 && neighbourTile.yAs[0].x != tile.yAs[0].y) || (dir.y > 0 && neighbourTile.yAs[0].y != tile.yAs[0].x)) 
                     ObjectsPerTile[pos].RemoveAt(i);
             }
             else if (dir.z != 0) {
-                if ((dir.z < 0 && neighbourTile.zAs.x != tile.zAs.y) || (dir.z > 0 && neighbourTile.zAs.y != tile.zAs.x)) 
+                if ((dir.z < 0 && neighbourTile.zAs[0].x != tile.zAs[0].y) || (dir.z > 0 && neighbourTile.zAs[0].y != tile.zAs[0].x)) 
                     ObjectsPerTile[pos].RemoveAt(i);
             }
         }
@@ -312,12 +341,12 @@ public class WaveFunctionCollapse : MonoBehaviour
         var ownTile = ObjectsPerTile[currentPos][0].GetComponent<TileComponent>();
         var neighborPositions = new List<Vector3Int>();
 
-        if (ownTile.xAs.x > 0) neighborPositions.Add(currentPos + new Vector3Int(1, 0, 0));
-        if (ownTile.xAs.y > 0) neighborPositions.Add(currentPos + new Vector3Int(-1, 0, 0));
-        if (ownTile.yAs.x > 0) neighborPositions.Add(currentPos + new Vector3Int(0, 1, 0));
-        if (ownTile.yAs.y > 0) neighborPositions.Add(currentPos + new Vector3Int(0, -1, 0));
-        if (ownTile.zAs.x > 0) neighborPositions.Add(currentPos + new Vector3Int(0, 0, 1));
-        if (ownTile.zAs.y > 0) neighborPositions.Add(currentPos + new Vector3Int(0, 0, -1));
+        if (ownTile.xAs[0].x > 0) neighborPositions.Add(currentPos + new Vector3Int(1, 0, 0));
+        if (ownTile.xAs[0].y > 0) neighborPositions.Add(currentPos + new Vector3Int(-1, 0, 0));
+        if (ownTile.yAs[0].x > 0) neighborPositions.Add(currentPos + new Vector3Int(0, 1, 0));
+        if (ownTile.yAs[0].y > 0) neighborPositions.Add(currentPos + new Vector3Int(0, -1, 0));
+        if (ownTile.zAs[0].x > 0) neighborPositions.Add(currentPos + new Vector3Int(0, 0, 1));
+        if (ownTile.zAs[0].y > 0) neighborPositions.Add(currentPos + new Vector3Int(0, 0, -1));
 
         return neighborPositions;
     }
