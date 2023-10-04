@@ -10,16 +10,19 @@ public class TileComponent : MonoBehaviour
     public List<Vector2> yAs = new();
     public List<Vector2> zAs = new();
 
+    public Vector3Int Size { get => new(xAs.Count, yAs.Count, zAs.Count); }
     public List<int> AvailableIndices { get; private set; } = new();
-    public Dictionary<int, Vector2Int> GridPositionsFromIndex { get; private set; } = new();
+    public Dictionary<int, Vector3Int> GridPositionsFromIndex { get; private set; } = new();
 
     private void Awake() {
         int counter = 0;
         for (int x = 0; x < xAs.Count; x++) {
             for (int y = 0; y < yAs.Count; y++) {
-                GridPositionsFromIndex.Add(counter, new Vector2Int(x, y));
-                AvailableIndices.Add(counter);
-                counter++;
+                for (int z = 0; z < zAs.Count; z++) {
+                    GridPositionsFromIndex.Add(counter, new Vector3Int(x, y, z));
+                    AvailableIndices.Add(counter);
+                    counter++;
+                }
             }
         }
     }

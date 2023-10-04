@@ -75,7 +75,8 @@ public class WaveFunctionCollapse : MonoBehaviour
             }
 
             int index = Random.Range(0, ObjectsPerTile[currentPos].Count);
-            var tile = Instantiate(ObjectsPerTile[currentPos][index], GetWorldPos(currentPos), Quaternion.identity);
+            var tilecomponent = ObjectsPerTile[currentPos][index];
+            var tile = Instantiate(tilecomponent, GetWorldPos(currentPos, tilecomponent.Size, tilecomponent.AvailableIndices[0]), Quaternion.identity);
             tile.name = tile.name + " " + currentPos.ToString();
 
             ObjectsPerTile[currentPos].Clear();
@@ -126,7 +127,7 @@ public class WaveFunctionCollapse : MonoBehaviour
         var ownTile = ObjectsPerTile[ownPos][0];
 
         foreach (var item in listPerNeighbour) {
-            var neighbourList = item.Value;
+            List<TileComponent> neighbourList = item.Value;
 
             Vector3Int axis = item.Key;
             Vector2Int xAs = new(axis.x > 0 ? 1 : 0, axis.x < 0 ? 1 : 0);
@@ -174,8 +175,32 @@ public class WaveFunctionCollapse : MonoBehaviour
                     }
                 }
 
+                foreach (int index in neighbourTile.AvailableIndices)
+                    CheckForFit(ownPos + axis, neighbourTile, index);
+
                 if (neighbourTile.AvailableIndices.Count < 1)
                     neighbourList.RemoveAt(i);
+            }
+        }
+    }
+
+    private void CheckForFit(Vector3Int spawnpos, TileComponent tile, int index) {
+        var offset = tile.GridPositionsFromIndex[index];
+
+        for (int x = 0; x < tile.Size.x; x++) {
+            for (int y = 0; y < tile.Size.y; y++) {
+                for (int z = 0; z < tile.Size.z; z++) {
+                    var pos = spawnpos + (new Vector3Int(x, y, z) - offset);
+
+                    if (!ObjectsPerTile.ContainsKey(pos)) {
+                        tile.AvailableIndices.Remove(index);
+                        return;
+                    }
+                    if (ObjectsPerTile[pos].Count <= 1) {
+                        tile.AvailableIndices.Remove(index);
+                        return;
+                    }
+                }
             }
         }
     }
@@ -265,8 +290,10 @@ public class WaveFunctionCollapse : MonoBehaviour
             return;
         }
 
-        var tile = Instantiate(endTiles[Random.Range(0, endTiles.Count)], GetWorldPos(pos), Quaternion.identity);
+        var tileComponent = endTiles[Random.Range(0, endTiles.Count)];
+        var tile = Instantiate(tileComponent, GetWorldPos(pos, tileComponent.Size, tileComponent.AvailableIndices[0]), Quaternion.identity);
         tile.name += $" {pos}";
+
         ObjectsPerTile[pos].Clear();
         ObjectsPerTile[pos].Add(tile);
 
@@ -316,7 +343,7 @@ public class WaveFunctionCollapse : MonoBehaviour
                 yield return new WaitForSeconds(generationSpeed);
 
                 var tmp = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                Vector3 pos = GetWorldPos(currentPos);
+                Vector3 pos = GetWorldPos(currentPos, Vector3Int.zero, -1);
                 tmp.transform.localScale = new Vector3(.1f, .1f, .1f);
                 tmp.transform.position = new Vector3(pos.x, pos.y + 1, pos.z);
             }
@@ -331,10 +358,10 @@ public class WaveFunctionCollapse : MonoBehaviour
             }
         }
 
-        if (Player != null) {
-            Vector3 spawnPos = new Vector3(GetWorldPos(spawnPoint).x, spawnPoint.y + 3, GetWorldPos(spawnPoint).z);
-            Player.transform.position = spawnPos;
-        }
+        //if (Player != null) {
+        //    Vector3 spawnPos = new Vector3(GetWorldPos(spawnPoint).x, spawnPoint.y + 3, GetWorldPos(spawnPoint).z);
+        //    Player.transform.position = spawnPos;
+        //}
     }
 
     private List<Vector3Int> GetNeighborPositions(Vector3Int currentPos) {
@@ -351,7 +378,10 @@ public class WaveFunctionCollapse : MonoBehaviour
         return neighborPositions;
     }
 
-    public Vector3 GetWorldPos(Vector3Int gridpos) {
+    public Vector3 GetWorldPos(Vector3Int gridpos, Vector3Int size, int index) {
+        if (index < 0)
+            return new Vector3(gridpos.x * tileSize, gridpos.y * floorDis, gridpos.z * tileSize);
+
         return new Vector3(gridpos.x * tileSize, gridpos.y * floorDis, gridpos.z * tileSize);
     }
 }
