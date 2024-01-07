@@ -18,9 +18,6 @@ public class WaveFunctionCollapse : MonoBehaviour
     [SerializeField] private int yAxis;
     [SerializeField] private int zAxis;
 
-    [Range(1, MAX_DENSITY)]
-    public int density;
-
     [SerializeField] private float floorDis;
     [SerializeField] private float tileSize = 1;
 
@@ -76,7 +73,7 @@ public class WaveFunctionCollapse : MonoBehaviour
 
             int index = Random.Range(0, ObjectsPerTile[currentPos].Count);
             var tilecomponent = ObjectsPerTile[currentPos][index];
-            var tile = Instantiate(tilecomponent, GetWorldPos(currentPos, tilecomponent.Size, tilecomponent.AvailableIndices[0]), Quaternion.identity);
+            var tile = Instantiate(tilecomponent, GetWorldPos(currentPos, tilecomponent.Size, 0), Quaternion.identity);
             tile.name = tile.name + " " + currentPos.ToString();
 
             ObjectsPerTile[currentPos].Clear();
@@ -269,7 +266,7 @@ public class WaveFunctionCollapse : MonoBehaviour
             }
         }
     }
-     
+    
     public void GetEndCap(Vector3Int pos) {
         ObjectsPerTile[pos].Clear();
 
