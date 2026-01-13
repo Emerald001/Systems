@@ -1,42 +1,38 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SprintingState : MoveState {
+    private float sprintSpeed;
 
-    public SprintingState(StateMachine<MovementManager> owner) : base(owner) {
-        this.owner = stateMachine.Owner;
+    public SprintingState(StateMachine<MovementManager> owner, float sprintSpeed) : base(owner) {
+        this.owner = StateMachine.Owner;
+        this.sprintSpeed = sprintSpeed;
     }
 
     public override void OnEnter() {
-        owner.animator.SetBool("Sprinting", true);
+        owner.Animator.SetBool("Sprinting", true);
 
-        owner.sprinting = true;
+        owner.Sprinting = true;
     }
 
     public override void OnExit() {
-        owner.animator.SetBool("Sprinting", false);
+        owner.Animator.SetBool("Sprinting", false);
     }
 
     public override void OnUpdate() {
-        Vector3 velocity = Vector3.zero;
-
         Vector3 input = new(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
 
-        //move
-        var movedir = owner.SlopeTransform.TransformDirection(input.normalized);
-        velocity += movedir * owner.runSpeed;
+        Vector3 movedir = owner.SlopeTransform.TransformDirection(input.normalized);
+        Vector3 velocity = movedir * sprintSpeed;
 
         if (input.magnitude == 0)
-            owner.animator.SetBool("Walking", false);
+            owner.Animator.SetBool("Walking", false);
 
-        //jump
         if (Input.GetKeyDown(KeyCode.Space)) {
-            owner.animator.SetTrigger("Jump");
-            owner.velocity += new Vector3(0, Mathf.Sqrt(owner.jumpHeight * -2 * owner.gravity), 0);
+            owner.Animator.SetTrigger("Jump");
+            owner.Velocity += new Vector3(0, Mathf.Sqrt(owner.JumpHeight * -2 * owner.Gravity), 0);
         }
 
-        owner.velocity = Vector3.MoveTowards(owner.velocity, velocity, owner.Acceleration * Time.deltaTime);
+        owner.Velocity = Vector3.MoveTowards(owner.Velocity, velocity, owner.Acceleration * Time.deltaTime);
 
         base.OnUpdate();
     }

@@ -16,7 +16,7 @@ public class LeapGrabNextLedgeState : MoveState {
 
         Ledge = owner.CurrentLedge;
 
-        owner.animator.SetTrigger("HangJumpUp");
+        owner.Animator.SetTrigger("HangJumpUp");
     }
 
     public override void OnExit() {
@@ -32,7 +32,7 @@ public class LeapGrabNextLedgeState : MoveState {
         if (Mathf.Abs(owner.transform.position.y + 1.5f - owner.CurrentLedge.transform.position.y) > .05f) {
             var dif = new Vector3(owner.CurrentLedge.transform.position.x - owner.transform.position.x, 1.5f, 0);
             var tmp = (owner.CurrentLedge.transform.position - (owner.transform.position + dif)).normalized * 5;
-            owner.velocity = (new Vector3(0, tmp.y, 0) * 100).normalized * 5;
+            owner.Velocity = (new Vector3(0, tmp.y, 0) * 100).normalized * 5;
         }
         else {
             isDone = true;

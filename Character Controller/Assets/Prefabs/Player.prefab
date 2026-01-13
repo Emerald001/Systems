@@ -3280,26 +3280,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f81296949543db743ad2626772037849, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  velocity: {x: 0, y: 0, z: 0}
-  Visuals: {fileID: 2613197047928054954}
-  GroundCheck: {fileID: 2613197048466001653}
-  LedgeCheck: {fileID: 2613197048714994597}
-  SlopeTransform: {fileID: 0}
-  YRotationParent: {fileID: 0}
-  GroundLayer:
-    serializedVersion: 2
-    m_Bits: 8
-  EdgeLayer:
-    serializedVersion: 2
-    m_Bits: 64
-  DebugObject: {fileID: 0}
-  controller: {fileID: 0}
-  coneCollisions: {fileID: 0}
+  visuals: {fileID: 2613197047928054954}
+  groundCheck: {fileID: 2613197048466001653}
+  ledgeCheck: {fileID: 2613197048714994598}
+  slopeTransform: {fileID: 0}
+  yRotationParent: {fileID: 0}
   gravity: -19.62
   airDrag: 0.997
-  Acceleration: 50
+  acceleration: 50
   maxSpeed: 30
-  speed: 5
+  walkSpeed: 5
   airbornSpeed: 0.03
   runSpeed: 15
   slideSpeed: 25
@@ -3310,20 +3300,14 @@ MonoBehaviour:
   climbTime: 1
   animator: {fileID: 2613197048695324844}
   armSpeed: 3
-  LeftArmTarget: {fileID: 2613197047255470757}
+  leftArmTarget: {fileID: 2613197047255470757}
   leftArm: {fileID: 2613197048523451598}
-  RightArmTarget: {fileID: 2613197048541867284}
+  rightArmTarget: {fileID: 2613197048541867284}
   rightArm: {fileID: 2613197047802217170}
-  LeftFootTarget: {fileID: 2613197048848400614}
+  leftFootTarget: {fileID: 2613197048848400614}
   leftLeg: {fileID: 2613197049096889742}
-  RightFootTarget: {fileID: 2613197048707857020}
+  rightFootTarget: {fileID: 2613197048707857020}
   rightLeg: {fileID: 2613197048414581218}
-  CurrentDirection: {x: 0, y: 0, z: 0}
-  GroundAngle: {x: 0, y: 0, z: 0}
-  sprinting: 0
-  canGrabNextLedge: 1
-  lookAtMoveDir: 1
-  CurrentLedge: {fileID: 0}
 --- !u!1 &2613197049130406878
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,7 +10,7 @@ public class AimState : CameraState
     private Vector3 AimDis = new(.5f, 0, -3);
 
     public AimState(StateMachine<CameraManager> owner) : base(owner) {
-        this.owner = stateMachine.Owner;
+        this.owner = StateMachine.Owner;
     }
 
     public override void OnEnter() {

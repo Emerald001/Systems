@@ -12,11 +12,11 @@ public class GetUpOnPlatformState : MoveState {
     public Vector3 endpoint;
 
     public override void OnEnter() {
-        endpoint = owner.evaluator.CanGoOntoLedge();
+        endpoint = owner.Evaluator.CanGoOntoLedge();
 
         //owner.CurrentLedge = null;
 
-        owner.animator.SetTrigger("GetOntoPlatform");
+        owner.Animator.SetTrigger("GetOntoPlatform");
         IsDone = false;
     }
 
@@ -26,7 +26,7 @@ public class GetUpOnPlatformState : MoveState {
 
     public override void OnUpdate() {
         if (Vector3.Distance(owner.transform.position, endpoint) > .2f) {
-            owner.velocity = (endpoint - owner.transform.position).normalized * 5;
+            owner.Velocity = (endpoint - owner.transform.position).normalized * 5;
         }
         else {
             IsDone = true;

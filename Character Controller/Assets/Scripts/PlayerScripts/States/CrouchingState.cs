@@ -1,49 +1,42 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class CrouchingState : MoveState
-{
-    public CrouchingState(StateMachine<MovementManager> owner) : base(owner) {
-        this.owner = stateMachine.Owner;
+public class CrouchingState : MoveState {
+    private readonly float crouchingSpeed;
+
+    public CrouchingState(StateMachine<MovementManager> owner, float crouchingSpeed) : base(owner) {
+        this.owner = StateMachine.Owner;
+        this.crouchingSpeed = crouchingSpeed;
     }
 
     public override void OnEnter() {
-        owner.controller.height = 1;
-        owner.controller.center = new Vector3(0, .5f, 0);
+        owner.Controller.height = 1;
+        owner.Controller.center = new Vector3(0, .5f, 0);
 
-        owner.animator.SetBool("Crouching", true);
+        owner.Animator.SetBool("Crouching", true);
     }
 
     public override void OnExit() {
-        owner.controller.height = 2;
-        owner.controller.center = new Vector3(0, 1, 0);
+        owner.Controller.height = 2;
+        owner.Controller.center = new Vector3(0, 1, 0);
 
-        owner.animator.SetBool("Crouching", false);
+        owner.Animator.SetBool("Crouching", false);
     }
 
     public override void OnUpdate() {
         Vector3 velocity = Vector3.zero;
-
-        //inputs
         Vector3 input = new(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
 
-        //move
-        var movedir = owner.SlopeTransform.TransformDirection(input.normalized);
-        velocity += movedir * owner.crouchSpeed;
+        Vector3 movedir = owner.SlopeTransform.TransformDirection(input.normalized);
+        velocity += movedir * crouchingSpeed;
 
-        if (input.magnitude > 0)
-            owner.animator.SetBool("Walking", true);
-        else
-            owner.animator.SetBool("Walking", false);
-
-        //jump 
+        owner.Animator.SetBool("Walking", input.magnitude > 0);
+        
         if (Input.GetKeyDown(KeyCode.Space)) {
-            owner.animator.SetTrigger("Jump");
-            owner.velocity += new Vector3(0, Mathf.Sqrt(owner.jumpHeight * -2 * owner.gravity), 0);
+            owner.Animator.SetTrigger("Jump");
+            owner.Velocity += new Vector3(0, Mathf.Sqrt(owner.JumpHeight * -2 * owner.Gravity), 0);
         }
 
-        owner.velocity = Vector3.MoveTowards(owner.velocity, velocity, owner.Acceleration * Time.deltaTime);
+        owner.Velocity = Vector3.MoveTowards(owner.Velocity, velocity, owner.Acceleration * Time.deltaTime);
 
         base.OnUpdate();
     }

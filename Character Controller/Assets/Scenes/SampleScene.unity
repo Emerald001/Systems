@@ -8599,15 +8599,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 361147449}
     - target: {fileID: 2613197049130382960, guid: 8afc49c7c99f15e47b5e0a41cdb6e834, type: 3}
-      propertyPath: DebugObject
-      value: 
-      objectReference: {fileID: 361147445}
-    - target: {fileID: 2613197049130382960, guid: 8afc49c7c99f15e47b5e0a41cdb6e834, type: 3}
-      propertyPath: SlopeTransform
+      propertyPath: slopeTransform
       value: 
       objectReference: {fileID: 290522779}
     - target: {fileID: 2613197049130382960, guid: 8afc49c7c99f15e47b5e0a41cdb6e834, type: 3}
-      propertyPath: YRotationParent
+      propertyPath: yRotationParent
       value: 
       objectReference: {fileID: 905985932}
     - target: {fileID: 2613197049130382966, guid: 8afc49c7c99f15e47b5e0a41cdb6e834, type: 3}

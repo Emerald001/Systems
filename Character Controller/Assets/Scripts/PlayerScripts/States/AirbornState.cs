@@ -1,53 +1,57 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class AirbornState : MoveState {
+    private float airbornSpeed;
+    private float airDrag;
+    private float maxSpeed;
 
+    private int jumpAmount;
     private int doubleJumps;
 
-    public AirbornState(StateMachine<MovementManager> owner) : base(owner) {
-        this.owner = stateMachine.Owner;
+    public AirbornState(StateMachine<MovementManager> owner, float airbornSpeed, float airDrag, float maxSpeed, int jumpAmount) : base(owner) {
+        this.owner = StateMachine.Owner;
+        this.airbornSpeed = airbornSpeed;
+        this.airDrag = airDrag;
+        this.maxSpeed = maxSpeed;
+        this.jumpAmount = jumpAmount;
     }
 
     public override void OnEnter() {
-        owner.lookAtMoveDir = true;
+        owner.LookAtMoveDir = true;
 
-        owner.animations.ResetIK();
+        owner.Animations.ResetIK();
 
-        owner.animator.SetBool("HangingFromEdge", false);
-        owner.animator.SetBool("Falling", true);
-        doubleJumps = owner.jumpAmount;
+        owner.Animator.SetBool("HangingFromEdge", false);
+        owner.Animator.SetBool("Falling", true);
+        doubleJumps = jumpAmount;
     }
 
     public override void OnExit() {
-        owner.animator.SetBool("Falling", false);
-        owner.animator.SetTrigger("TouchedGround");
+        owner.Animator.SetBool("Falling", false);
+        owner.Animator.SetTrigger("TouchedGround");
     }
 
     public override void OnUpdate() {
-        owner.velocity.x *= owner.airDrag;
-        owner.velocity.z *= owner.airDrag;
+        Vector3 newVelocity = owner.Velocity;
+        Vector3 input = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
 
-        //inputs
-        Vector3 input = new(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical"));
-        input = input.normalized;
+        newVelocity.x *= airDrag;
+        newVelocity.z *= airDrag;
 
-        owner.velocity += (owner.YRotationParent.right * input.x + owner.YRotationParent.forward * input.z) * owner.airbornSpeed;
-        owner.velocity.x = Mathf.Clamp(owner.velocity.x, -owner.maxSpeed, owner.maxSpeed);
-        owner.velocity.z = Mathf.Clamp(owner.velocity.z, -owner.maxSpeed, owner.maxSpeed);
+        newVelocity += (owner.YRotationParent.right * input.x + owner.YRotationParent.forward * input.z) * airbornSpeed;
+        newVelocity.x = Mathf.Clamp(newVelocity.x, -maxSpeed, maxSpeed);
+        newVelocity.y += owner.Gravity * Time.deltaTime;
+        newVelocity.z = Mathf.Clamp(newVelocity.z, -maxSpeed, maxSpeed);
 
-        owner.velocity.y += owner.gravity * Time.deltaTime;
-
-        if(Input.GetKeyDown(KeyCode.Space) && doubleJumps > 0) {
-            owner.velocity += new Vector3(0, Mathf.Sqrt((owner.jumpHeight / 2) * -2 * owner.gravity), 0);
+        if (Input.GetKeyDown(KeyCode.Space) && doubleJumps > 0) {
+            newVelocity += new Vector3(0, Mathf.Sqrt((owner.JumpHeight / 2) * -2 * owner.Gravity), 0);
             doubleJumps--;
         }
 
-        if (owner.evaluator.TouchedRoof() && owner.velocity.y > 0) {
-            owner.velocity.y = 0;
-        }
+        if (owner.Evaluator.TouchedRoof() && newVelocity.y > 0)
+            newVelocity.y = 0;
 
+        owner.Velocity = newVelocity;
         base.OnUpdate();
     }
 }

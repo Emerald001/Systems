@@ -10,12 +10,12 @@ public class LedgeGrabbingState : MoveState {
     public GameObject Ledge;
 
     public override void OnEnter() {
-        owner.lookAtMoveDir = false;
-        owner.velocity = Vector3.zero;
+        owner.LookAtMoveDir = false;
+        owner.Velocity = Vector3.zero;
 
         Ledge = owner.CurrentLedge;
 
-        owner.animator.SetBool("HangingFromEdge", true);
+        owner.Animator.SetBool("HangingFromEdge", true);
     }
 
     public override void OnExit() {

@@ -10,7 +10,7 @@ public class MovementCameraState : CameraState
     private Vector3 followDis = new(0, 0, -8);
 
     public MovementCameraState(StateMachine<CameraManager> owner) : base(owner) {
-        this.owner = stateMachine.Owner;
+        this.owner = StateMachine.Owner;
     }
 
     public override void OnEnter() {
